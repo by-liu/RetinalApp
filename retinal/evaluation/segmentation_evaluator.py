@@ -84,7 +84,7 @@ class SegmentationEvaluator(DatasetEvaluator):
             / (np.spacing(1) + self.total_area_pred + self.total_area_target)
         )
         class_iou = self.total_area_inter / (np.spacing(1) + self.total_area_union)
-        class_table_data = [["id"] + ["Class"] + ["DSC"] + ["IoU"] + ["acc"]]
+        class_table_data = [["id"] + ["Class"] + ["DSC"] + ["IoU"] + ["ACC"]]
         for i in range(class_acc.shape[0]):
             class_table_data.append(
                 [i] + [self.classes[i]]

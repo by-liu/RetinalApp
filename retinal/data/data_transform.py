@@ -5,6 +5,8 @@ Date: Dec 15, 2020
 Brief: data transform wrapper
 """
 
+from albumentations.augmentations.transforms import HorizontalFlip, RandomBrightness, RandomContrast, RandomGamma
+from albumentations.core.composition import OneOf
 from yacs.config import CfgNode
 import logging
 import cv2
@@ -23,30 +25,30 @@ cv2.ocl.setUseOpenCL(False)
 
 
 @DATA_TRANSFORM.register("retinal-lesions")
+@DATA_TRANSFORM.register("FGADR")
 def retinal_lesion(cfg: CfgNode, is_train: bool = True) -> A.Compose:
     height, width = cfg.DATA.RESIZE
     if is_train:
         transformer = A.Compose([
-            A.Resize(height, width, interpolation=cv2.INTER_CUBIC),
-            # A.OneOrOther(
-            #     A.Resize(height, width, interpolation=cv2.INTER_CUBIC),
-            #     A.Sequential([
-            #         A.RandomScale([0.8, 1.2], interpolation=cv2.INTER_CUBIC, p=1.),
-            #         A.RandomCrop(height, width),
-            #     ], p=1),
-            #     p=0.5
-            # ),
             A.HorizontalFlip(),
-            A.VerticalFlip(),
-            A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
-            A.HueSaturationValue(),
-            # A.RGBShift(r_shift_limit=25, g_shift_limit=25, b_shift_limit=25, p=0.5),
+            A.OneOf([
+                A.RandomContrast(),
+                A.RandomGamma(),
+                A.RandomBrightness(),
+                ], p=0.3),
+            A.OneOf([
+                A.ElasticTransform(alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
+                A.GridDistortion(),
+                A.OpticalDistortion(distort_limit=2, shift_limit=0.5),
+                ], p=0.3),
+            A.ShiftScaleRotate(),
+            A.Resize(height, width, always_apply=True),
             A.Normalize(),
             ToTensorV2()
         ])
     else:
         transformer = A.Compose([
-            A.Resize(height, width, interpolation=cv2.INTER_CUBIC),
+            A.Resize(height, width, always_apply=True),
             A.Normalize(),
             ToTensorV2()
         ])

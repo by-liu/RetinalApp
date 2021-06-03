@@ -1,3 +1,4 @@
+import logging
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
@@ -8,9 +9,12 @@ from typing import Callable
 
 from ..config.registry import Registry
 from .retinal_lesion_dataset import RetinalLesionsDataset
+from .fgadr_dataset import FGADRDataset
 from .cityscapes import CityscapesDataset
 from .image_folder import ImageFolder
 from .data_transform import build_image_transform
+
+logger = logging.getLogger(__name__)
 
 DATASET_REGISTRY = Registry("dataset")
 
@@ -47,6 +51,24 @@ def retinal_lesions(cfg : CN, data_transform : A.Compose, split : str = "train")
     return dataset
 
 
+@DATASET_REGISTRY.register("FGADR")
+def FGADR(cfg: CN, data_transform: Callable, split: str = "train") -> Dataset:
+    data_root = cfg.DATA.DATA_ROOT
+    samples_path = cfg[split.upper()]["DATA_PATH"]
+    samples_path = osp.join(data_root, samples_path)
+    classes_path = osp.join(data_root, "classes.txt")
+
+    dataset = FGADRDataset(
+        data_root, samples_path, classes_path,
+        data_transformer=data_transform,
+        return_id=True if split == "test" else False
+    )
+
+    logger.info("Successfully build dataset : {}".format(dataset))
+
+    return dataset
+
+
 @DATASET_REGISTRY.register("image-folder")
 def image_folder(cfg: CN, data_transform: Callable, **kwargs):
     data_root = cfg.DATA.DATA_ROOT
@@ -79,7 +101,7 @@ def build_data_pipeline(cfg : CN, split : str = "train") -> DataLoader:
     return data_loader
 
 
-def build_dataset(cfg : CN, split : str = "train") -> Dataset:
+def build_dataset(cfg: CN, split: str = "train") -> Dataset:
     assert split in [
         "train", "val", "test",
     ], "Split '{}' not supported".format(split)

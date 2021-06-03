@@ -27,7 +27,7 @@ class RetinalLesionsDataset(Dataset):
         self.image_dir = osp.join(self.data_root, "images_896x896")
         self.seg_dir = osp.join(self.data_root, "lesion_segs_896x896")
         self.samples: List[str] = load_list(sample_list_path)
-        self.classes, self.classes_abbrev = self.load_classes(classes_path)
+        _, self.classes = self.load_classes(classes_path)
         self.transforms = transforms
         self.label_values = label_values
         self.binary = binary

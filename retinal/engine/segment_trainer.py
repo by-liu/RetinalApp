@@ -37,7 +37,7 @@ class SegmentTrainer(DefaultTrainer):
         #     self.classes = load_list(self.cfg.DATA.CLASSES_PATH)
         # else:
         #     self.classes = [str(i) for i in range(self.cfg.MODEL.NUM_CLASSES)]
-        self.classes = self.train_loader.dataset.classes_abbrev
+        self.classes = self.train_loader.dataset.classes
         self.evaluator = SegmentationEvaluator(
             classes=self.classes,
             include_background=True
@@ -64,11 +64,11 @@ class SegmentTrainer(DefaultTrainer):
         if loss_meter is not None:
             loss_dict = loss_meter.get_vals()
             for key, val in loss_dict.items():
-                wandb.log("{}/Iter/{}".format(phase, key), val)
+                wandb.log({"{}/Iter/{}".format(phase, key): val})
         if score is not None:
-            wandb.log("{}/Iter/{}".format(phase, self.evaluator.main_metric()), score)
+            wandb.log({"{}/Iter/{}".format(phase, self.evaluator.main_metric()): score})
         if lr is not None:
-            wandb.log("{}/Iter/lr".format(phase), lr)
+            wandb.log({"{}/Iter/lr".format(phase): lr})
 
     def wandb_epoch_info_or_not(
         self, epoch, phase="train", evaluator=None,
@@ -79,12 +79,12 @@ class SegmentTrainer(DefaultTrainer):
         if loss_meter is not None:
             loss_dict = loss_meter.get_vals()
             for key, val in loss_dict.items():
-                wandb.log("{}/Epoch/{}".format(phase, key), val)
+                wandb.log({"{}/Epoch/{}".format(phase, key): val})
         if isinstance(self.loss_func, CompoundLoss):
-            wandb.log("{}/Epoch/alpha".format(phase), self.loss_func.alpha)
+            wandb.log({"{}/Epoch/alpha".format(phase): self.loss_func.alpha})
         if evaluator is not None:
             wandb.log(
-                "{}/Epoch/{}".format(phase, evaluator.main_metric()), evaluator.mean_score()
+                {"{}/Epoch/{}".format(phase, evaluator.main_metric()): evaluator.mean_score()}
             )
 
     def wandb_best_model_or_not(self):
