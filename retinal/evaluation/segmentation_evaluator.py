@@ -78,7 +78,7 @@ class SegmentationEvaluator(DatasetEvaluator):
         return mdice
 
     def class_score(self):
-        class_acc = self.total_area_inter / (np.spacing(1) + self.total_area_union)
+        class_acc = self.total_area_inter / (np.spacing(1) + self.total_area_target)
         class_dice = (
             2 * self.total_area_inter
             / (np.spacing(1) + self.total_area_pred + self.total_area_target)
