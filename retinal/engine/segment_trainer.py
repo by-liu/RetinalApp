@@ -73,7 +73,10 @@ class SegmentTrainer(DefaultTrainer):
     ):
         if not self.cfg.WANDB.ENABLE:
             return
-        log_dict = {"epoch": epoch}
+        if phase != "test":
+            log_dict = {"epoch": epoch}
+        else:
+            log_dict = {"test_epoch": epoch}
         if loss_meter is not None:
             loss_dict = loss_meter.get_vals()
             for key, val in loss_dict.items():
