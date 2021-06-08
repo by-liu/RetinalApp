@@ -10,7 +10,9 @@ DATA:
   DATA_ROOT: ./data/FGADR-Seg/Seg-set
   RESIZE: [896, 896]  # [896, 896]
 LOSS:
-  NAME: CE
+  NAME: CE+L1
+  ALPHA: 1.0
+  TEMP: 10.0
 SOLVER:
   OPTIMIZING_METHOD: adam
   BASE_LR: 0.0001
@@ -22,7 +24,6 @@ TRAIN:
   EVAL_PERIOD: 1
   CHECKPOINT_PERIOD: 5
   CALCULATE_METRIC: True
-  # AUTO_RESUME: True
 VAL:
   DATA_PATH: val.txt
   BATCH_SIZE: 6
@@ -34,7 +35,7 @@ WANDB:
   ENABLE: True
   PROJECT: retinal
   ENTITY: newton
-OUTPUT_DIR: ./log/FGADR_unet_bce_896x896
+OUTPUT_DIR: ./log/FGADR_unet_bce-l1_896x896
 RNG_SEED: 1
 LOG_PERIOD: 30
 DEVICE: cuda:0
