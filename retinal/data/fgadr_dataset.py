@@ -45,8 +45,9 @@ class FGADRDataset(Dataset):
             mask_dir = osp.join(self.data_root, "{}_Masks".format(class_name))
             mask_path = osp.join(mask_dir, sample_name)
             if osp.exists(mask_path):
-                mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-                mask[np.where(mask == 255)] = 1
+                img = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+                mask = np.zeros_like(img)
+                mask[np.where(img > 125)] = 1
                 target[:, :, i] = mask
 
         return target

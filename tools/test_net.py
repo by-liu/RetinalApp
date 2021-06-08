@@ -1,10 +1,28 @@
 import sys
+import argparse
 import logging
 
-from seglossbias.utils import mkdir, setup_logging
-from seglossbias.engine import default_argument_parser, load_config, DefaultTester
+from retinal.config.registry import Registry
+from retinal.utils import mkdir, setup_logging
+from retinal.engine import load_config, SegmentTester
 
 logger = logging.getLogger(__name__)
+
+TESTER_REGISTRY = Registry("tester")
+TESTER_REGISTRY.register("segment", SegmentTester)
+
+
+def argument_parser() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Segmentation Pipeline')
+    parser.add_argument("task", type=str, default=None,
+                        choices=["segment"],
+                        help="The target task")
+    parser.add_argument("--config-file", default="", metavar="FILE",
+                        help="path to config file")
+    parser.add_argument("--opts", default=None, nargs=argparse.REMAINDER,
+                        help="Modify config options using command-line")
+
+    return parser
 
 
 def setup(args):
@@ -15,11 +33,11 @@ def setup(args):
 
 
 def main():
-    args = default_argument_parser().parse_args()
+    args = argument_parser().parse_args()
     cfg = setup(args)
     logger.info("Launch command : ")
     logger.info(" ".join(sys.argv))
-    tester = DefaultTester(cfg)
+    tester = TESTER_REGISTRY.get(args.task)(cfg)
     tester.test()
 
 

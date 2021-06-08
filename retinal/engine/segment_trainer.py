@@ -1,5 +1,4 @@
 import os.path as osp
-from retinal.engine.trainer import DefaultTrainer
 import time
 import pprint
 import logging
@@ -7,15 +6,11 @@ import torch
 from yacs.config import CfgNode as CN
 import wandb
 
+from retinal.engine.trainer import DefaultTrainer
 from retinal.config import convert_cfg_to_dict
-from retinal.modeling import build_model, get_loss_func, CompoundLoss
-from retinal.solver import build_optimizer, build_scheduler, get_lr
+from retinal.modeling import CompoundLoss
+from retinal.solver import get_lr
 from retinal.evaluation import SegmentationEvaluator, AverageMeter, LossMeter
-from retinal.data import build_data_pipeline
-from retinal.utils import (
-    TensorboardWriter, load_train_checkpoint, save_checkpoint, load_checkpoint,
-    load_list
-)
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +28,6 @@ class SegmentTrainer(DefaultTrainer):
         self.init_wandb_or_not()
 
     def build_meter(self):
-        # if self.cfg.DATA.CLASSES_PATH:
-        #     self.classes = load_list(self.cfg.DATA.CLASSES_PATH)
-        # else:
-        #     self.classes = [str(i) for i in range(self.cfg.MODEL.NUM_CLASSES)]
         self.classes = self.train_loader.dataset.classes
         self.evaluator = SegmentationEvaluator(
             classes=self.classes,
@@ -51,9 +42,10 @@ class SegmentTrainer(DefaultTrainer):
             wandb.init(
                 project=self.cfg.WANDB.PROJECT,
                 entity=self.cfg.WANDB.ENTITY,
-                config=convert_cfg_to_dict(self.cfg)
+                config=convert_cfg_to_dict(self.cfg),
+                tags=["train"]
             )
-            wandb.watch(self.model, log_freq=1000)
+            wandb.watch(self.model, log=None)
 
     def wandb_iter_info_or_not(
         self, iter, max_iter, epoch, phase="train",
@@ -61,31 +53,40 @@ class SegmentTrainer(DefaultTrainer):
     ):
         if not self.cfg.WANDB.ENABLE:
             return
+
+        step = epoch * max_iter + iter
+
+        log_dict = {"iter": step}
         if loss_meter is not None:
             loss_dict = loss_meter.get_vals()
             for key, val in loss_dict.items():
-                wandb.log({"{}/Iter/{}".format(phase, key): val})
+                log_dict["{}/Iter/{}".format(phase, key)] = val
         if score is not None:
-            wandb.log({"{}/Iter/{}".format(phase, self.evaluator.main_metric()): score})
+            log_dict["{}/Iter/{}".format(phase, self.evaluator.main_metric())] = score
         if lr is not None:
-            wandb.log({"{}/Iter/lr".format(phase): lr})
+            log_dict["{}/Iter/lr".format(phase)] = lr
+        wandb.log(log_dict)
 
     def wandb_epoch_info_or_not(
         self, epoch, phase="train", evaluator=None,
         loss_meter=None
     ):
-        if not self.cfg.NEPTUNE.ENABLE:
+        if not self.cfg.WANDB.ENABLE:
             return
+        log_dict = {"epoch": epoch}
         if loss_meter is not None:
             loss_dict = loss_meter.get_vals()
             for key, val in loss_dict.items():
-                wandb.log({"{}/Epoch/{}".format(phase, key): val})
+                log_dict["{}/Epoch/{}".format(phase, key)] = val
         if isinstance(self.loss_func, CompoundLoss):
-            wandb.log({"{}/Epoch/alpha".format(phase): self.loss_func.alpha})
+            log_dict["{}/Epoch/alpha".format(phase)] = self.loss_func.alpha
         if evaluator is not None:
-            wandb.log(
-                {"{}/Epoch/{}".format(phase, evaluator.main_metric()): evaluator.mean_score()}
-            )
+            log_dict["{}/Epoch/{}".format(phase, evaluator.main_metric())] = evaluator.mean_score()
+            if phase != "train" and len(evaluator.classes) > 1:
+                df = evaluator.class_score(return_dataframe=True)
+                table = wandb.Table(dataframe=df)
+                log_dict["{}/Epoch/class_score".format(phase)] = table
+        wandb.log(log_dict)
 
     def wandb_best_model_or_not(self):
         if self.cfg.WANDB.ENABLE:
@@ -127,8 +128,11 @@ class SegmentTrainer(DefaultTrainer):
             # metric
             self.loss_meter.update(loss, inputs.size(0))
             predicts = self.model.act(outputs)
-            pred_label = (predicts > self.cfg.THRES).float()
-            score = self.evaluator.update(pred_label.detach().cpu().numpy(),
+            if self.cfg.MODEL.MODE == "multilabel" or self.cfg.MODEL.NUM_CLASSES == 1:
+                pred_labels = (predicts > self.cfg.THRES).int()
+            else:
+                pred_labels = torch.argmax(predicts, dim=1)
+            score = self.evaluator.update(pred_labels.detach().cpu().numpy(),
                                           labels.detach().cpu().numpy())
             # measure elapsed time
             self.batch_time_meter.update(time.time() - end)

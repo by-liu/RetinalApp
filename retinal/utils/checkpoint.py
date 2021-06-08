@@ -2,7 +2,7 @@ import os.path as osp
 import logging
 import torch
 from yacs.config import CfgNode as CN
-from typing import Optional
+from typing import Optional, Tuple
 
 from .file_io import mkdir, load_list
 
@@ -81,9 +81,9 @@ def get_last_model_path(cfg : CN) -> str:
     return osp.join(cfg.OUTPUT_DIR, "model", model_name)
 
 
-def load_train_checkpoint(cfg : CN, model : torch.nn.Module,
-                          optimizer : torch.optim.Optimizer = None,
-                          scheduler : torch.optim.lr_scheduler = None) -> int:
+def load_train_checkpoint(cfg: CN, model: torch.nn.Module,
+                          optimizer: torch.optim.Optimizer = None,
+                          scheduler: torch.optim.lr_scheduler = None) -> Tuple:
     if not cfg.TRAIN.AUTO_RESUME:
         return 0, -1, None
 

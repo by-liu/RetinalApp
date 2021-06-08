@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from typing import List, Optional
+import pandas as pd
 from terminaltables import AsciiTable
 
 from retinal.evaluation.evaluator import DatasetEvaluator
@@ -49,7 +50,7 @@ class SegmentationEvaluator(DatasetEvaluator):
 
         assert pred.shape == target.shape, "pred and target should have same shapes"
 
-        self.nsamples += pred.shape[1]
+        self.nsamples += pred.shape[0]
         area_inter = np.einsum("ncij,ncij->nc", pred, target)
         area_pred = np.einsum("ncij->nc", pred)
         area_target = np.einsum("ncij->nc", target)
@@ -60,6 +61,7 @@ class SegmentationEvaluator(DatasetEvaluator):
         area_union = area_union.sum(axis=0)
         area_pred = area_pred.sum(axis=0)
         area_target = area_target.sum(axis=0)
+
         # update the total
         self.total_area_inter += area_inter
         self.total_area_union += area_union
@@ -77,14 +79,15 @@ class SegmentationEvaluator(DatasetEvaluator):
         ).mean()
         return mdice
 
-    def class_score(self):
+    def class_score(self, return_dataframe=False):
         class_acc = self.total_area_inter / (np.spacing(1) + self.total_area_target)
         class_dice = (
             2 * self.total_area_inter
             / (np.spacing(1) + self.total_area_pred + self.total_area_target)
         )
         class_iou = self.total_area_inter / (np.spacing(1) + self.total_area_union)
-        class_table_data = [["id"] + ["Class"] + ["DSC"] + ["IoU"] + ["ACC"]]
+        columns = ["id", "Class", "DSC", "IoU", "ACC"]
+        class_table_data = [columns]
         for i in range(class_acc.shape[0]):
             class_table_data.append(
                 [i] + [self.classes[i]]
@@ -99,5 +102,16 @@ class SegmentationEvaluator(DatasetEvaluator):
             + ["{:.4f}".format(np.mean(class_acc))]
         )
         table = AsciiTable(class_table_data)
-        logger.info("\n" + table.table)
-        return class_iou
+
+        if return_dataframe:
+            data = {key: [] for key in columns}
+            for i in range(class_acc.shape[0]):
+                data[columns[0]].append(i)
+                data[columns[1]].append(self.classes[i])
+                data[columns[2]].append(class_dice[i])
+                data[columns[3]].append(class_iou[i])
+                data[columns[4]].append(class_acc[i])
+            return pd.DataFrame(data, columns=columns)
+        else:
+            logger.info("\n" + table.table)
+            return class_dice

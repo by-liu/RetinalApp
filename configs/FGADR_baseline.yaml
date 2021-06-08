@@ -8,7 +8,7 @@ MODEL:
 DATA:
   NAME: FGADR
   DATA_ROOT: ./data/FGADR-Seg/Seg-set
-  RESIZE: [512, 512]  # [896, 896]
+  RESIZE: [896, 896]  # [896, 896]
 LOSS:
   NAME: CE
 SOLVER:
@@ -22,6 +22,7 @@ TRAIN:
   EVAL_PERIOD: 1
   CHECKPOINT_PERIOD: 5
   CALCULATE_METRIC: True
+  # AUTO_RESUME: True
 VAL:
   DATA_PATH: val.txt
   BATCH_SIZE: 8
@@ -33,8 +34,9 @@ WANDB:
   ENABLE: True
   PROJECT: retinal
   ENTITY: newton
-OUTPUT_DIR: ./log/FGADR_baseline_bce
+OUTPUT_DIR: ./log/FGADR_baseline_bce_unet
 RNG_SEED: 1
 LOG_PERIOD: 30
 DEVICE: cuda:0
 PERFORM_TEST: True
+THRES: 0.2

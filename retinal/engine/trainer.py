@@ -351,7 +351,7 @@ class DefaultTrainer:
     def test_epoch_or_not(self):
         if self.cfg.PERFORM_TEST:
             logger.info("Start testing ... ")
-            epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH
+            epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH - 1
             model_path = osp.join(
                 self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch)
             )
