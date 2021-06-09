@@ -353,7 +353,7 @@ class DefaultTrainer:
             logger.info("Start testing ... ")
             epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH - 1
             model_path = osp.join(
-                self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch)
+                self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch + 1)
             )
             load_checkpoint(model_path, self.model, self.device)
             test_loader = build_data_pipeline(self.cfg, "test")
