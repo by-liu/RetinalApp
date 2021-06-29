@@ -32,6 +32,7 @@ TEST:
   DATA_PATH: test.txt
   BATCH_SIZE: 8
   CHECKPOINT_PATH: ""
+  BEST_CHECKPOINT: True
 OUTPUT_DIR: ./log/retinal-lesions_baseline_bce
 RNG_SEED: 1
 LOG_PERIOD: 30

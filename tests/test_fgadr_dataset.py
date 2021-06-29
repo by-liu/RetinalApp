@@ -12,7 +12,7 @@ from retinal.data.data_transform import retinal_lesion
 class TestFGADRDataset(unittest.TestCase):
     def test(self):
         data_root = "./data/FGADR-Seg/Seg-set"
-        samples_path = osp.join(data_root, "train.txt")
+        samples_path = osp.join(data_root, "test.txt")
         classes_path = osp.join(data_root, "classes.txt")
         cfg = get_cfg()
         transformer = retinal_lesion(cfg)
