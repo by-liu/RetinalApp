@@ -61,7 +61,7 @@ results
 └── predicts.txt
 ```
 
-As the model is under multi-label setting, there could be multiple predicted for classes for pixels in each image. Therefore, we output multiple masks for each image, with each corresponding to a class.
+As the model is under multi-label setting, there could be multiple lesions for the pixels in each image. Therefore, we output multiple masks for each image, with each corresponding to a particular class.
 
 The indices of the classes are as follows:
 
