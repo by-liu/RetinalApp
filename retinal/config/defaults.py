@@ -230,6 +230,9 @@ _C.TEST.MODEL_EPOCH = 0
 # If True, it will save the predicted results into one numpy array file
 _C.TEST.SAVE_PREDICTS = False
 
+# If True, it will save the predicted labels into a file
+_C.TEST.SAVE_LABELS = False
+
 # -------------------------------------------------------------
 # Transductive options (Only available when running transductive script)
 # -------------------------------------------------------------
@@ -281,15 +284,6 @@ _C.TENSORBOARD.PLOT_CLASS_SCORE = False
 
 # Path of a txt file providing class names
 _C.TENSORBOARD.CLASSES_NAMES_PATH = ""
-
-# -------------------------------------------------------------
-# Neptune(https://neptune.ai/) : Experiment management platform
-# -------------------------------------------------------------
-_C.NEPTUNE = CN()
-_C.NEPTUNE.ENABLE = False
-_C.NEPTUNE.USER_NAME = "bingyuan"
-_C.NEPTUNE.PROJECT_NAME = "seg-loss-bias"
-_C.NEPTUNE.EXP_NAME = "train"
 
 # -------------------------------------------------------------
 # Wandb(https://wandb.ai/) : Experiment management platform

@@ -51,6 +51,7 @@ class SegmentationEvaluator(DatasetEvaluator):
         assert pred.shape == target.shape, "pred and target should have same shapes"
 
         self.nsamples += pred.shape[0]
+        mask = (target != self.ignore_index)
         area_inter = np.einsum("ncij,ncij->nc", pred, target)
         area_pred = np.einsum("ncij->nc", pred)
         area_target = np.einsum("ncij->nc", target)

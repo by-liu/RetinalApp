@@ -1,4 +1,5 @@
 import os.path as osp
+from shutil import copyfile
 import time
 import pprint
 import logging
@@ -31,7 +32,8 @@ class SegmentTrainer(DefaultTrainer):
         self.classes = self.train_loader.dataset.classes
         self.evaluator = SegmentationEvaluator(
             classes=self.classes,
-            include_background=True
+            include_background=True,
+            ignore_index=255
         )
         self.batch_time_meter = AverageMeter()
         self.data_time_meter = AverageMeter()
@@ -45,7 +47,12 @@ class SegmentTrainer(DefaultTrainer):
                 config=convert_cfg_to_dict(self.cfg),
                 tags=["train"]
             )
+            wandb.run.name = "{}-{}-{}".format(
+                wandb.run.id, self.cfg.MODEL.ARCH, self.cfg.LOSS.NAME
+            )
+            wandb.run.save()
             wandb.watch(self.model, log=None)
+            logger.info("Wandb initialized : {}".format(wandb.run.name))
 
     def wandb_iter_info_or_not(
         self, iter, max_iter, epoch, phase="train",
@@ -93,11 +100,10 @@ class SegmentTrainer(DefaultTrainer):
 
     def wandb_best_model_or_not(self):
         if self.cfg.WANDB.ENABLE:
-            epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH
-            model_path = osp.join(
-                self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch)
+            copyfile(
+                osp.join(self.cfg.OUTPUT_DIR, "model", "best.pth"),
+                osp.join(self.cfg.OUTPUT_DIR, "model", "{}-best.pth".format(wandb.run.name)),
             )
-            wandb.save(model_path)
 
     def train_epoch(self, epoch: int):
         self.reset_meter()

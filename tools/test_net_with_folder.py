@@ -2,8 +2,8 @@ import sys
 import logging
 import argparse
 
-from seglossbias.utils import mkdir, setup_logging
-from seglossbias.engine import default_argument_parser, load_config, ImageFolderTester
+from retinal.utils import mkdir, setup_logging
+from retinal.engine import load_config, ImageFolderTester
 
 logger = logging.getLogger(__name__)
 

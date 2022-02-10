@@ -10,18 +10,18 @@ logger = logging.getLogger(__name__)
 
 
 def save_checkpoint(
-    save_dir : str,
-    model : torch.nn.Module,
-    optimizer : torch.optim.Optimizer,
-    scheduler : torch.optim.lr_scheduler,
-    epoch : int,
-    last_checkpoint : bool = True,
-    best_checkpoint : bool = False,
-    val_score : Optional[float] = None,
+    save_dir: str,
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler,
+    epoch: int,
+    last_checkpoint: bool = True,
+    best_checkpoint: bool = False,
+    val_score: Optional[float] = None,
 ) -> None:
     mkdir(save_dir)
-    model_name = "checkpoint_epoch_{}.pth".format(epoch + 1)
-    model_path = osp.join(save_dir, model_name)
+    # model_name = "checkpoint_epoch_{}.pth".format(epoch + 1)
+    # model_path = osp.join(save_dir, model_name)
     state = {
         "epoch": epoch,
         "state_dict": model.state_dict(),
@@ -30,13 +30,15 @@ def save_checkpoint(
     }
     if val_score:
         state["val_score"] = val_score
-    torch.save(state, model_path)
-    if last_checkpoint:
-        with open(osp.join(save_dir, "last_checkpoint"), "w") as wf:
-            wf.write(model_name)
+    torch.save(state, osp.join(save_dir, "last.pth"))
     if best_checkpoint:
-        with open(osp.join(save_dir, "best_checkpoint"), "w") as wf:
-            wf.write(model_name)
+        torch.save(state, osp.join(save_dir, "best.pth"))
+    # if last_checkpoint:
+    #     with open(osp.join(save_dir, "last_checkpoint"), "w") as wf:
+    #         wf.write(model_name)
+    # if best_checkpoint:
+    #     with open(osp.join(save_dir, "best_checkpoint"), "w") as wf:
+    #         wf.write(model_name)
 
 
 def load_checkpoint(model_path : str, model : torch.nn.Module, device) -> None:
@@ -59,26 +61,26 @@ def load_checkpoint(model_path : str, model : torch.nn.Module, device) -> None:
 
 def get_best_model_path(cfg : CN) -> str:
     """get the path of the best model"""
-    best_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "best_checkpoint")
-    if not osp.exists(best_checkpoint_path):
-        raise FileNotFoundError(
-            "File not found : {}".format(best_checkpoint_path)
-        )
-    model_name = load_list(best_checkpoint_path)[0]
+    # best_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "best_checkpoint")
+    # if not osp.exists(best_checkpoint_path):
+    #     raise FileNotFoundError(
+    #         "File not found : {}".format(best_checkpoint_path)
+    #     )
+    # model_name = load_list(best_checkpoint_path)[0]
 
-    return osp.join(cfg.OUTPUT_DIR, "model", model_name)
+    return osp.join(cfg.OUTPUT_DIR, "model", "best.pth")
 
 
 def get_last_model_path(cfg : CN) -> str:
     """get the path of the best model"""
-    last_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "last_checkpoint")
-    if not osp.exists(last_checkpoint_path):
-        raise FileNotFoundError(
-            "File not found : {}".format(last_checkpoint_path)
-        )
-    model_name = load_list(last_checkpoint_path)[0]
+    # last_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "last_checkpoint")
+    # if not osp.exists(last_checkpoint_path):
+    #     raise FileNotFoundError(
+    #         "File not found : {}".format(last_checkpoint_path)
+    #     )
+    # model_name = load_list(last_checkpoint_path)[0]
 
-    return osp.join(cfg.OUTPUT_DIR, "model", model_name)
+    return osp.join(cfg.OUTPUT_DIR, "model", "last.pth")
 
 
 def load_train_checkpoint(cfg: CN, model: torch.nn.Module,

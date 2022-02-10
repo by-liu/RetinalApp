@@ -9,6 +9,7 @@ from retinal.config import convert_cfg_to_dict
 from retinal.engine.tester import DefaultTester
 from retinal.evaluation import SegmentationEvaluator, AverageMeter
 from retinal.data import build_data_pipeline
+from retinal.utils.wandb_wrapper import wandb_mask, wandb_batch_mask
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +67,15 @@ class SegmentTester(DefaultTester):
                 table = wandb.Table(dataframe=df)
                 wandb.log({"test/Epoch/class_score": table})
 
+    def wandb_log_predictions(self, image, pred_labels, gt_labels):
+        pass
+
     @torch.no_grad()
     def test(self):
         self.reset_meter()
         self.model.eval()
 
+        image_mask_list = []
         max_iter = len(self.data_loader)
         end = time.time()
         for i, samples in enumerate(self.data_loader):
@@ -93,6 +98,22 @@ class SegmentTester(DefaultTester):
                                    batch_time_meter=self.batch_time_meter,
                                    score=score)
                 self.wandb_iter_info(score)
+                # image_mask_list.append(
+                #     wandb_mask(
+                #         inputs[0].detach().cpu().numpy(),
+                #         pred_labels[0].detach().cpu().numpy(),
+                #         labels[0].detach().cpu().numpy(),
+                #         self.classes
+                #     )
+                # )
+                if self.cfg.WANDB.ENABLE:
+                    wandb_batch_mask(
+                        inputs.detach().cpu().numpy(),
+                        pred_labels.detach().cpu().numpy(),
+                        labels.detach().cpu().numpy(),
+                        self.classes
+                    )
             end = time.time()
         self.log_epoch_info(self.evaluator)
         self.wandb_epoch_info_or_not(self.evaluator)
+        # wandb.log({"examples": image_mask_list})

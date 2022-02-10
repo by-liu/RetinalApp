@@ -7,6 +7,7 @@ import segmentation_models_pytorch as smp
 
 from retinal.config.registry import Registry
 from retinal.utils.checkpoint import load_checkpoint
+from .unet import UNet
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,34 @@ def Fpn(cfg) -> smp.FPN:
         encoder_weights=cfg.MODEL.ENCODER_WEIGHTS if cfg.MODEL.ENCODER_WEIGHTS else None,
         in_channels=cfg.MODEL.INPUT_CHANNELS,
         classes=cfg.MODEL.NUM_CLASSES
+    )
+    setattr(model, "act", ACT_REGISTRY.get(cfg.MODEL.ACT_FUNC))
+    return model
+
+
+@NETWORK_REGISTRY.register("FpnCls")
+def FpnWithClsHead(cfg) -> smp.FPN:
+    model = smp.FPN(
+        encoder_name=cfg.MODEL.ENCODER,
+        encoder_weights=cfg.MODEL.ENCODER_WEIGHTS if cfg.MODEL.ENCODER_WEIGHTS else None,
+        in_channels=cfg.MODEL.INPUT_CHANNELS,
+        classes=cfg.MODEL.NUM_CLASSES,
+        aux_params={
+            "classes": cfg.MODEL.NUM_CLASSES,
+            "pooling": "avg",
+            "dropout": cfg.MODEL.DROPOUT
+        }
+    )
+    setattr(model, "act", ACT_REGISTRY.get(cfg.MODEL.ACT_FUNC))
+    return model
+
+
+@NETWORK_REGISTRY.register("NaiveUnet")
+def NaviUnet(cfg) -> UNet:
+    model = UNet(
+        n_channels=cfg.MODEL.INPUT_CHANNELS,
+        n_classes=cfg.MODEL.NUM_CLASSES,
+        bilinear=True
     )
     setattr(model, "act", ACT_REGISTRY.get(cfg.MODEL.ACT_FUNC))
     return model

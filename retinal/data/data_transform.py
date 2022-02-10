@@ -24,6 +24,45 @@ cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 
+def retinal_lesion2(cfg: CfgNode, is_train: bool = True) -> A.Compose:
+    height, width = cfg.DATA.RESIZE
+    if is_train:
+        transformer = A.Compose([
+            A.OneOf([
+                A.Sequential([
+                    A.SmallestMaxSize(max_size=640),
+                    A.RandomCrop(height=512, width=512),
+                ]),
+                A.Resize(512, 512),
+            ], p=1),
+            A.RandomBrightnessContrast(
+                brightness_limit=0.2, contrast_limit=0.2, p=0.5
+            ),
+            A.OneOf([
+                A.ElasticTransform(alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
+                A.GridDistortion(),
+                A.OpticalDistortion(distort_limit=2, shift_limit=0.5),
+                ], p=0.3),
+            # A.HueSaturationValue(),
+            A.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2()
+        ])
+    else:
+        transformer = A.Compose([
+            A.LongestMaxSize(max_size=896),
+            # A.PadIfNeeded(
+            #     min_height=640, min_width=640,
+            #     border_mode=cv2.BORDER_CONSTANT,
+            #     value=(0, 0, 0), mask_value=[255] * 9, 
+            # ),
+            A.Normalize(),
+            ToTensorV2()
+        ])
+
+    return transformer
+
+
 @DATA_TRANSFORM.register("retinal-lesions")
 @DATA_TRANSFORM.register("FGADR")
 def retinal_lesion(cfg: CfgNode, is_train: bool = True) -> A.Compose:

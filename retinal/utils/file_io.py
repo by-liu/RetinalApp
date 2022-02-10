@@ -38,6 +38,12 @@ def load_list(path : str) -> List[str]:
     return ret
 
 
+def save_list(path: str, lst):
+    with open(path, "w") as f:
+        for x in lst:
+            f.write("{}\n".format(x))
+
+
 def load_leison_classes(path : str) -> Tuple[List[str], List[str]]:
     """load retinal lesion classes info from text file"""
     assert osp.exists(path), "{} does not exist".format(path)

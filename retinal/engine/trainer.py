@@ -4,7 +4,6 @@ import pprint
 import logging
 import torch
 from yacs.config import CfgNode as CN
-import neptune
 
 from retinal.config import convert_cfg_to_dict
 from retinal.modeling import build_model, get_loss_func, CompoundLoss
@@ -26,7 +25,7 @@ class DefaultTrainer:
     2. build dataloader to generate mini-batch input data
     3. Create loss meter and performance evaluator
     4. Start training and evaluation in epoch-by-epoch manner
-    5. Status logging, Tensorboard writing [optional] or Neptune tracking [optional]
+    5. Status logging, Tensorboard writing [optional] or Wandb tracking [optional]
     """
     def __init__(self, cfg: CN):
         self.cfg = cfg
@@ -38,7 +37,6 @@ class DefaultTrainer:
         self.build_solver()
         self.build_meter()
         self.init_tensorboard_or_not()
-        self.init_neptune_or_not()
 
     def build_model(self):
         self.model = build_model(self.cfg)
@@ -68,18 +66,6 @@ class DefaultTrainer:
 
     def init_tensorboard_or_not(self):
         self.writer = TensorboardWriter(self.cfg) if self.cfg.TENSORBOARD.ENABLE else None
-
-    def init_neptune_or_not(self):
-        if self.cfg.NEPTUNE.ENABLE:
-            project_name = self.cfg.NEPTUNE.USER_NAME + "/" + self.cfg.NEPTUNE.PROJECT_NAME
-            neptune.init(project_qualified_name=project_name)
-            work_dir = osp.abspath(osp.join(osp.dirname(__file__), "../.."))
-            neptune.create_experiment(
-                self.cfg.NEPTUNE.EXP_NAME,
-                params=convert_cfg_to_dict(self.cfg),
-                logger=logger,
-                upload_source_files=work_dir + "/**/**.py"
-            )
 
     def close(self):
         if self.writer is not None:
@@ -113,20 +99,6 @@ class DefaultTrainer:
                 global_step=epoch * max_iter + iter
             )
 
-    def neptune_iter_info_or_not(
-        self, iter, max_iter, epoch, phase="train",
-        loss_meter=None, score=None, lr=None
-    ):
-        if not self.cfg.NEPTUNE.ENABLE:
-            return
-        if loss_meter is not None:
-            loss_dict = loss_meter.get_vals()
-            for key, val in loss_dict.items():
-                neptune.log_metric("{}/Iter/{}".format(phase, key), val)
-        if score is not None:
-            neptune.log_metric("{}/Iter/{}".format(phase, self.evaluator.main_metric()), score)
-        if lr is not None:
-            neptune.log_metric("{}/Iter/lr".format(phase), lr)
 
     def log_iter_info(
         self, iter, max_iter, epoch, phase="train",
@@ -174,22 +146,6 @@ class DefaultTrainer:
                 global_step=epoch
             )
 
-    def neptune_epoch_info_or_not(
-        self, epoch, phase="train", evaluator=None,
-        loss_meter=None
-    ):
-        if not self.cfg.NEPTUNE.ENABLE:
-            return
-        if loss_meter is not None:
-            loss_dict = loss_meter.get_vals()
-            for key, val in loss_dict.items():
-                neptune.log_metric("{}/Epoch/{}".format(phase, key), val)
-        if isinstance(self.loss_func, CompoundLoss):
-            neptune.log_metric("{}/Epoch/alpha".format(phase), self.loss_func.alpha)
-        if evaluator is not None:
-            neptune.log_metric(
-                "{}/Epoch/{}".format(phase, evaluator.main_metric()), evaluator.mean_score()
-            )
 
     def log_epoch_info(
         self, epoch, phase="train", evaluator=None,
@@ -261,24 +217,12 @@ class DefaultTrainer:
                 score=score,
                 lr=lr
             )
-            self.neptune_iter_info_or_not(
-                i, max_iter, epoch,
-                phase="train",
-                loss_meter=self.loss_meter,
-                score=score,
-                lr=lr
-            )
             end = time.time()
         self.log_epoch_info(epoch,
                             phase="train",
                             evaluator=self.evaluator,
                             loss_meter=self.loss_meter)
         self.tensorbaord_epoch_info_or_not(
-            epoch, phase="train",
-            evaluator=self.evaluator,
-            loss_meter=self.loss_meter
-        )
-        self.neptune_epoch_info_or_not(
             epoch, phase="train",
             evaluator=self.evaluator,
             loss_meter=self.loss_meter
@@ -319,19 +263,12 @@ class DefaultTrainer:
                 self.tensorbaord_iter_info_or_not(
                     i, max_iter, epoch, phase=phase, loss_meter=self.loss_meter, score=score
                 )
-                self.neptune_iter_info_or_not(
-                    i, max_iter, epoch, phase=phase, loss_meter=self.loss_meter, score=score
-                )
             end = time.time()
         self.log_epoch_info(epoch,
                             phase=phase,
                             evaluator=self.evaluator,
                             loss_meter=self.loss_meter)
         self.tensorbaord_epoch_info_or_not(
-            epoch, phase=phase, evaluator=self.evaluator,
-            loss_meter=self.loss_meter
-        )
-        self.neptune_epoch_info_or_not(
             epoch, phase=phase, evaluator=self.evaluator,
             loss_meter=self.loss_meter
         )
@@ -351,42 +288,42 @@ class DefaultTrainer:
     def test_epoch_or_not(self):
         if self.cfg.PERFORM_TEST:
             logger.info("Start testing ... ")
-            epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH - 1
+            # name = "best.pth" if self.cfg.TEST.BEST_CHECKPOINT else "last.pth"
             model_path = osp.join(
-                self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch + 1)
+                self.cfg.OUTPUT_DIR, "model", "best.pth"
             )
             load_checkpoint(model_path, self.model, self.device)
             test_loader = build_data_pipeline(self.cfg, "test")
             test_loss, test_score = self.eval_epoch(
-                test_loader, epoch, phase="test"
+                test_loader, self.best_epoch, phase="test"
             )
             logger.info("Complete testing !")
             logger.info(
                 ("Final performance on test subset- "
-                 "model epoch {}, score {:.4f}").format(epoch, test_score)
+                 "model epoch {}, score {:.4f}").format(self.best_epoch, test_score)
             )
-
-    def neptune_best_model_or_not(self):
-        if self.cfg.NEPTUNE.ENABLE:
-            epoch = self.best_epoch if self.cfg.TEST.BEST_CHECKPOINT else self.cfg.SOLVER.MAX_EPOCH
-            model_path = osp.join(
-                self.cfg.OUTPUT_DIR, "model", "checkpoint_epoch_{}.pth".format(epoch)
-            )
-            neptune.log_artifact(model_path, "model/checkpoint_epoch_{}.pth".format(epoch))
 
     def save_checkpoint_or_not(self, epoch, val_score):
-        if (epoch + 1) >= self.cfg.TRAIN.CHECKPOINT_AFTER_PERIOD and\
-                (epoch + 1) % self.cfg.TRAIN.CHECKPOINT_PERIOD == 0:
-            save_checkpoint(
-                osp.join(self.cfg.OUTPUT_DIR, "model"),
-                self.model, self.optimizer, self.scheduler, epoch,
-                last_checkpoint=True,
-                best_checkpoint=val_score > self.best_score if self.best_score is not None else True, 
-                val_score=val_score
+        # if (epoch + 1) < self.cfg.TRAIN.CHECKPOINT_AFTER_PERIOD:
+        #     return
+        if self.best_score is None or val_score > self.best_score:
+            self.best_score, self.best_epoch = val_score, epoch
+            best_checkpoint = True
+        else:
+            best_checkpoint = False
+        save_checkpoint(
+            osp.join(self.cfg.OUTPUT_DIR, "model"),
+            self.model, self.optimizer, self.scheduler, epoch,
+            last_checkpoint=True,
+            best_checkpoint=best_checkpoint,
+            val_score=val_score
+        )
+        # logging best performance on val so far
+        logger.info(
+            "Epoch[{}]\tBest on Val : {:.4f} at epoch {}".format(
+                epoch + 1, self.best_score, self.best_epoch + 1
             )
-
-            if self.best_score is None or val_score > self.best_score:
-                self.best_score, self.best_epoch = val_score, epoch
+        )
 
     def train(self):
         self.start_or_resume()
@@ -409,5 +346,4 @@ class DefaultTrainer:
         )
         # Peform test phase if requried
         self.test_epoch_or_not()
-        self.neptune_best_model_or_not()
         self.close()

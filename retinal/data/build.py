@@ -8,7 +8,7 @@ import albumentations as A
 from typing import Callable
 
 from ..config.registry import Registry
-from .retinal_lesion_dataset import RetinalLesionsDataset
+from .retinal_lesions import RetinalLesions
 from .fgadr_dataset import FGADRDataset
 from .cityscapes import CityscapesDataset
 from .image_folder import ImageFolder
@@ -37,16 +37,14 @@ def retinal_lesions(cfg : CN, data_transform : A.Compose, split : str = "train")
         data_path = "{}.txt".format(split)
 
     data_root = cfg.DATA.DATA_ROOT
-    dataset = RetinalLesionsDataset(
+    dataset = RetinalLesions(
         data_root,
         osp.join(data_root, data_path),
-        osp.join(data_root, "classes.txt"),
         data_transform,
-        cfg.DATA.LABEL_VALUES,
-        binary=cfg.DATA.BINARY,
-        region_number=cfg.DATA.REGION_NUMBER,
-        return_id=True if split == "test" else False
+        return_id=True if split != "train" else False
     )
+
+    logger.info("Successfully build dataset : {}".format(dataset))
 
     return dataset
 
