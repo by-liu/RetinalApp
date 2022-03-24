@@ -27,7 +27,10 @@ Download : [model](https://drive.google.com/file/d/10qFflD10qwI-dHjLGOQpPub7RHv3
 
 Run :
 ```
-python tools/test_net_with_folder.py --config-file ./configs/retinal-lesions_fpn_ce.yaml --image-path [PATH_OF_IMAGE_FOLDER] --save-path results/TEST.SAVE_LABELS True  TEST.CHECKPOINT_PATH [PATH_OF_CHECKPOINT]
+python tools/test_net_with_folder.py --config-file ./configs/retinal-lesions_fpn_ce.yaml \
+    --image-path [PATH_OF_IMAGE_FOLDER] \
+    --save-path results/ \
+    TEST.SAVE_LABELS True  TEST.CHECKPOINT_PATH [PATH_OF_CHECKPOINT]
 ```
 
 Note : Please modify the PATH_OF_IMAGE_FOLDER and PATH_OF_CHECKPOINT in the command.
@@ -86,6 +89,25 @@ If "TEST.SAVE_LABELS" is set to true, a "predicts.txt" file is also generated in
 12481_right 1,2,3,6
 35515_right 1,2,3,6
 ```
+
+## Test with DR grading model
+
+Download : [model](https://drive.google.com/file/d/16NT-i5lMG-Ht0Ty0gNkHYjk1uiqQdUKC/view?usp=sharing)
+Some info about the model can be found at the [report](https://wandb.ai/newton/retinal/reports/DR-grading-baseline-20220311--VmlldzoxNjc1MDgy?accessToken=ngzk5hfdd228lahukgeg2sm5byrt0d8qiglgts591qyv18wh5t3j6nwfxempofwx).
+
+Run :
+```
+python tools/test_net_with_folder.py \
+    --task dr \
+    --config-file ./configs/dr/eyepacs_resnet_ce_adam.yaml \
+    --image-path [PATH_OF_IMAGE_FOLDER] \
+    --save-path results/ \
+    TEST.SAVE_LABELS True  TEST.CHECKPOINT_PATH [PATH_OF_CHECKPOINT]
+```
+
+Note : Please modify the PATH_OF_IMAGE_FOLDER and PATH_OF_CHECKPOINT in the command.
+
+After the job is done, the prediction could be found in the resulting folder.
 
 
 ## License
