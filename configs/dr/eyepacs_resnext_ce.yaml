@@ -1,0 +1,41 @@
+MODEL:
+  ARCH: timm
+  ENCODER: ig_resnext101_32x8d
+  ENCODER_WEIGHTS: imagenet
+  NUM_CLASSES: 5
+  MODE: multiclass
+  ACT_FUNC: softmax
+DATA:
+  NAME: eyepacs
+  DATA_ROOT: ./data/EyePACS
+LOSS:
+  NAME: CE
+SOLVER:
+  OPTIMIZING_METHOD: sgd 
+  BASE_LR: 0.01
+  MOMENTUM: 0.9
+  WEIGHT_DECAY: 1e-4
+  MAX_EPOCH: 100
+  LR_POLICY: step
+  STEP_SIZE: 30
+  GAMMA: 0.1
+TRAIN:
+  BATCH_SIZE: 16
+  EVAL_PERIOD: 1
+  CALCULATE_METRIC: True
+VAL:
+  BATCH_SIZE: 16
+TEST:
+  # DATA_PATH: val.txt
+  BATCH_SIZE: 16
+  CHECKPOINT_PATH: ""
+  BEST_CHECKPOINT: True
+WANDB:
+  ENABLE: True
+  PROJECT: retinal
+  ENTITY: newton
+OUTPUT_DIR: ./log/eyepacs_light_resnext101-32x8d_ce
+RNG_SEED: 1
+LOG_PERIOD: 25
+DEVICE: cuda:0
+PERFORM_TEST: True

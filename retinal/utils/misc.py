@@ -4,6 +4,7 @@ import numpy as np
 import os
 import random
 from datetime import datetime
+from copy import deepcopy
 import torch
 
 from .file_io import mkdir
@@ -73,3 +74,20 @@ def get_logfile(logger):
         return None
     else:
         return logger.root.handlers[1].baseFilename
+
+
+def round_dict(d, decimals=5):
+    """
+    Return a new dictionary with all the flating values rounded
+    with the sepcified number of decimals
+    """
+    ret = deepcopy(d)
+    for key in ret:
+        if isinstance(ret[key], float):
+            ret[key] = round(ret[key], decimals)
+    return ret
+
+
+def get_lr(optimizer: torch.optim.Optimizer) -> float:
+    for param in optimizer.param_groups:
+        return param["lr"]

@@ -33,9 +33,9 @@ def build_optimizer(
 
 
 def build_scheduler(
-    cfg : CN,
-    optimizer : torch.optim.Optimizer,
-    data_loader : torch.utils.data.DataLoader
+    cfg: CN,
+    optimizer: torch.optim.Optimizer,
+    data_loader: torch.utils.data.DataLoader
 ) -> torch.optim.lr_scheduler:
     if cfg.SOLVER.LR_POLICY == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

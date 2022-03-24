@@ -4,18 +4,19 @@ import logging
 
 from retinal.config.registry import Registry
 from retinal.utils import mkdir, setup_logging
-from retinal.engine import load_config, SegmentTester
+from retinal.engine import load_config, SegmentTester, DRTester
 
 logger = logging.getLogger(__name__)
 
 TESTER_REGISTRY = Registry("tester")
 TESTER_REGISTRY.register("segment", SegmentTester)
+TESTER_REGISTRY.register("dr", DRTester)
 
 
 def argument_parser() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Segmentation Pipeline')
     parser.add_argument("task", type=str, default=None,
-                        choices=["segment"],
+                        choices=["segment", "dr"],
                         help="The target task")
     parser.add_argument("--config-file", default="", metavar="FILE",
                         help="path to config file")

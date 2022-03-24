@@ -64,9 +64,6 @@ class DefaultTrainer:
         self.data_time_meter.reset()
         self.loss_meter.reset()
 
-    def init_tensorboard_or_not(self):
-        self.writer = TensorboardWriter(self.cfg) if self.cfg.TENSORBOARD.ENABLE else None
-
     def close(self):
         if self.writer is not None:
             self.writer.close()
@@ -74,31 +71,6 @@ class DefaultTrainer:
     def start_or_resume(self):
         self.start_epoch, self.best_epoch, self.best_score = load_train_checkpoint(
             self.cfg, self.model, self.optimizer, self.scheduler)
-
-    def tensorbaord_iter_info_or_not(
-        self, iter, max_iter, epoch, phase="train",
-        loss_meter=None, score=None, lr=None
-    ):
-        if not self.writer:
-            return
-        if loss_meter is not None:
-            loss_dict = loss_meter.get_vals()
-            for key, val in loss_dict.items():
-                self.writer.add_scalars(
-                    {"{}/Iter/{}".format(phase, key): val},
-                    global_step=epoch * max_iter + iter
-                )
-        if score is not None:
-            self.writer.add_scalars(
-                {"{}/Iter/{}".format(phase, self.evaluator.main_metric()): score},
-                global_step=epoch * max_iter + iter
-            )
-        if lr is not None:
-            self.writer.add_scalars(
-                {"{}/Iter/lr".format(phase): lr},
-                global_step=epoch * max_iter + iter
-            )
-
 
     def log_iter_info(
         self, iter, max_iter, epoch, phase="train",
@@ -122,30 +94,6 @@ class DefaultTrainer:
         if lr is not None:
             log_str.append("LR {:.3g}".format(lr))
         logger.info("\t".join(log_str))
-
-    def tensorbaord_epoch_info_or_not(
-        self, epoch, phase="train", evaluator=None,
-        loss_meter=None
-    ):
-        if self.writer is None:
-            return
-        if loss_meter is not None:
-            loss_dict = loss_meter.get_avgs()
-            for key, val in loss_dict.items():
-                self.writer.add_scalars(
-                    {"{}/Epoch/{}".format(phase, key): val},
-                    global_step=epoch
-                )
-        if isinstance(self.loss_func, CompoundLoss):
-            self.writer.add_scalars(
-                {"{}/Epoch/alpha".format(phase): self.loss_func.alpha}
-            )
-        if evaluator is not None:
-            self.writer.add_scalars(
-                {"{}/Epoch/{}".format(phase, evaluator.main_metric()): evaluator.mean_score()},
-                global_step=epoch
-            )
-
 
     def log_epoch_info(
         self, epoch, phase="train", evaluator=None,

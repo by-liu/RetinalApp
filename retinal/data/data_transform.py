@@ -95,6 +95,42 @@ def retinal_lesion(cfg: CfgNode, is_train: bool = True) -> A.Compose:
     return transformer
 
 
+@DATA_TRANSFORM.register("eyepacs")
+def img_augment(cfg: CfgNode, is_train: bool = True):
+    if is_train:
+        transformer = A.Compose([
+            # A.SmallestMaxSize(max_size=448),
+            # A.RandomScale(scale_limit=[0.5, 1], p=1),
+            # A.RandomCrop(height=224, width=224),
+            # A.OneOf([
+            #     A.RandomContrast(),
+            #     A.RandomGamma(),
+            #     A.RandomBrightness(),
+            #     ], p=0.5),
+            # A.HorizontalFlip(),
+            A.Resize(width=760, height=760),
+            A.RandomCrop(height=728, width=728),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            # A.RandomRotate90(p=0.5),
+            # A.Blur(p=0.3),
+            # A.CLAHE(p=0.3),
+            # A.ColorJitter(p=0.3),
+            # A.CoarseDropout(max_holes=12, max_height=20, max_width=20, p=0.3),
+            # A.IAAAffine(shear=30, rotate=0, p=0.2, mode="constant"),
+            A.Normalize(),
+            ToTensorV2()
+        ])
+    else:
+        transformer = A.Compose([
+            # A.SmallestMaxSize(max_size=256),
+            # A.CenterCrop(height=224, width=224),
+            A.Resize(height=728, width=728),
+            A.Normalize(),
+            ToTensorV2()
+        ])
+    return transformer
+
 # @DATA_TRANSFORM.register("retinal-lesions")
 # def retinal_lesion(cfg : CfgNode, is_train : bool = True) -> p_tr.Compose:
 #     normalize = p_tr.Normalize(

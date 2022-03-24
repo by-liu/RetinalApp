@@ -2,14 +2,22 @@ import sys
 import logging
 import argparse
 
+from retinal.config.registry import Registry
 from retinal.utils import mkdir, setup_logging
-from retinal.engine import load_config, ImageFolderTester
+from retinal.engine import load_config, ImageFolderTester, DRFolderTester
 
 logger = logging.getLogger(__name__)
+
+TESTER_REGISTRY = Registry("folder_tester")
+TESTER_REGISTRY.register("segment", ImageFolderTester)
+TESTER_REGISTRY.register("dr", DRFolderTester)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Segmentation Pipeline')
+    parser.add_argument("--task", type=str, default="segment",
+                        choices=["segment", "dr"],
+                        help="The target task")
     parser.add_argument("--config-file", default="", metavar="FILE",
                         help="path to config file")
     parser.add_argument("--image-path", default="", metavar="FILE",
@@ -38,7 +46,7 @@ def main():
     cfg = setup(args)
     logger.info("Launch command : ")
     logger.info(" ".join(sys.argv))
-    tester = ImageFolderTester(cfg, args.save_path)
+    tester = TESTER_REGISTRY.get(args.task)(cfg, args.save_path)
     tester.test()
 
 

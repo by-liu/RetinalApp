@@ -2,8 +2,9 @@ import os.path as osp
 import torch
 import torch.nn as nn
 import logging
-from typing import Optional
+from typing import Optional, Any
 import segmentation_models_pytorch as smp
+import timm
 
 from retinal.config.registry import Registry
 from retinal.utils.checkpoint import load_checkpoint
@@ -81,6 +82,18 @@ def DeepLabV3Plus(cfg) -> smp.DeepLabV3Plus:
         classes=cfg.MODEL.NUM_CLASSES
     )
     setattr(model, "act", ACT_REGISTRY.get(cfg.MODEL.ACT_FUNC))
+    return model
+
+
+@NETWORK_REGISTRY.register("timm")
+def create_timm_model(cfg) -> Any:
+    model = timm.create_model(
+        model_name=cfg.MODEL.ENCODER,
+        pretrained=True,
+        num_classes=cfg.MODEL.NUM_CLASSES,
+        drop_rate=0.5,
+    )
+
     return model
 
 

@@ -12,6 +12,7 @@ from .retinal_lesions import RetinalLesions
 from .fgadr_dataset import FGADRDataset
 from .cityscapes import CityscapesDataset
 from .image_folder import ImageFolder
+from .eyepacs_dataset import EyePacsDataset
 from .data_transform import build_image_transform
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,21 @@ def FGADR(cfg: CN, data_transform: Callable, split: str = "train") -> Dataset:
 
     return dataset
 
+
+@DATASET_REGISTRY.register("eyepacs")
+def eyepacs(cfg: CN, data_transform: Callable, split: str = "train") -> Dataset:
+    data_root = cfg.DATA.DATA_ROOT
+    dataset = EyePacsDataset(
+        data_root=data_root,
+        split=split,
+        transformer=data_transform,
+        # return_id=True if split == "test" else False
+        return_id=False,
+    )
+
+    logger.info("Successfully build dataset : {}".format(dataset))
+
+    return dataset
 
 @DATASET_REGISTRY.register("image-folder")
 def image_folder(cfg: CN, data_transform: Callable, **kwargs):

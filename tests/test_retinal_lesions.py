@@ -12,6 +12,8 @@ from retinal.data.data_transform import retinal_lesion
 class TestRetinalDataset(unittest.TestCase):
     def test(self):
         cfg = get_cfg()
+        cfg.merge_from_file("./configs/dr/eyepacs_resnext_ce.yaml")
+
         data_root = "./data/retinal-lesions"
         samples_path = osp.join(data_root, "train.txt")
 
