@@ -107,7 +107,7 @@ python tools/test_net_with_folder.py \
 
 Note : Please modify the PATH_OF_IMAGE_FOLDER and PATH_OF_CHECKPOINT in the command.
 
-After the job is done, the prediction could be found in the resulting folder.
+After the job is done, the prediction could be found in the resulting folder with format "sample_id,label,probability"
 
 
 ## License

@@ -95,7 +95,7 @@ class DRFolderTester(ImageFolderTester):
         end = time.time()
 
         if self.cfg.TEST.SAVE_LABELS:
-            fsave = open(osp.join(self.save_path, "predicts.txt"), "w")
+            fsave = open(osp.join(self.save_path, "predicts.csv"), "w")
 
         for i, samples in enumerate(self.data_loader):
             inputs, sample_ids = samples[0].to(self.device), samples[1]
@@ -107,7 +107,7 @@ class DRFolderTester(ImageFolderTester):
             if self.cfg.TEST.SAVE_LABELS:
                 for j, sample_id in enumerate(sample_ids):
                     fsave.write(
-                        "{} {}\n".format(osp.splitext(sample_id)[0], pred_labels[j])
+                        "{},{},{:.5f}\n".format(osp.splitext(sample_id)[0], pred_labels[j], predicts[j].max())
                     )
             timer.update(time.time() - end)
             logger.info(
