@@ -1,0 +1,11 @@
+name: resnet50
+num_classes: 5
+pretrained: True
+drop_rate: 0.5
+
+object:
+  _target_: timm.create_model
+  model_name: resnet50
+  pretrained: ${model.pretrained}
+  num_classes: ${model.num_classes}
+  drop_rate: ${model.drop_rate}

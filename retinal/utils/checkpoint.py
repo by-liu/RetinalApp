@@ -1,3 +1,4 @@
+import os
 import os.path as osp
 import logging
 import torch
@@ -9,15 +10,16 @@ from .file_io import mkdir, load_list
 logger = logging.getLogger(__name__)
 
 
-def save_checkpoint(
+def save_train_checkpoint(
     save_dir: str,
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
-    scheduler: torch.optim.lr_scheduler,
     epoch: int,
-    last_checkpoint: bool = True,
+    scheduler: Optional[object] = None,
     best_checkpoint: bool = False,
     val_score: Optional[float] = None,
+    keep_checkpoint_num: int = 1,
+    keep_checkpoint_interval: int = 0
 ) -> None:
     mkdir(save_dir)
     # model_name = "checkpoint_epoch_{}.pth".format(epoch + 1)
@@ -26,19 +28,28 @@ def save_checkpoint(
         "epoch": epoch,
         "state_dict": model.state_dict(),
         "optimizer": optimizer.state_dict(),
-        "scheduler": scheduler.state_dict()
     }
+    if scheduler:
+        state["scheduler"] = scheduler.state_dict()
     if val_score:
         state["val_score"] = val_score
     torch.save(state, osp.join(save_dir, "last.pth"))
     if best_checkpoint:
         torch.save(state, osp.join(save_dir, "best.pth"))
-    # if last_checkpoint:
-    #     with open(osp.join(save_dir, "last_checkpoint"), "w") as wf:
-    #         wf.write(model_name)
-    # if best_checkpoint:
-    #     with open(osp.join(save_dir, "best_checkpoint"), "w") as wf:
-    #         wf.write(model_name)
+
+    if keep_checkpoint_num > 1:
+        "Keep more checkpoints than the last.pth"
+        torch.save(state, osp.join(save_dir, "epoch_{}.pth".format(epoch + 1)))
+        remove_file = osp.join(save_dir, "epoch_{}.pth".format(epoch + 1 - keep_checkpoint_num))
+        if osp.exists(remove_file):
+            os.remove(remove_file)
+
+    if keep_checkpoint_interval > 0:
+        "Keep the checkpoints for every interval epochs"
+        if (epoch + 1) % keep_checkpoint_interval == 0:
+            torch.save(
+                state, osp.join(save_dir, "epoch_{}.pth".format(epoch + 1))
+            )
 
 
 def load_checkpoint(model_path : str, model : torch.nn.Module, device) -> None:
@@ -49,8 +60,6 @@ def load_checkpoint(model_path : str, model : torch.nn.Module, device) -> None:
     checkpoint = torch.load(model_path, map_location=device)
     if "state_dict" in checkpoint:
         checkpoint = checkpoint["state_dict"]
-        if "state_dict" in checkpoint:
-            checkpoint = checkpoint["state_dict"]
     missing_keys, unexpected_keys = model.load_state_dict(checkpoint, strict=False)
     logger.info("Succeed to load weights from {}".format(model_path))
     if missing_keys:
@@ -83,24 +92,56 @@ def get_last_model_path(cfg : CN) -> str:
     return osp.join(cfg.OUTPUT_DIR, "model", "last.pth")
 
 
-def load_train_checkpoint(cfg: CN, model: torch.nn.Module,
-                          optimizer: torch.optim.Optimizer = None,
-                          scheduler: torch.optim.lr_scheduler = None) -> Tuple:
-    if not cfg.TRAIN.AUTO_RESUME:
-        return 0, -1, None
+# def load_train_checkpoint(cfg: CN, model: torch.nn.Module,
+#                           optimizer: torch.optim.Optimizer = None,
+#                           scheduler: torch.optim.lr_scheduler = None) -> Tuple:
+#     if not cfg.TRAIN.AUTO_RESUME:
+#         return 0, -1, None
+
+#     try:
+#         last_checkpoint_path = get_last_model_path(cfg)
+#         checkpoint = torch.load(last_checkpoint_path, map_location=cfg.DEVICE)
+#         epoch = checkpoint["epoch"]
+#         model.load_state_dict(checkpoint["state_dict"], strict=True)
+#         if optimizer:
+#             optimizer.load_state_dict(checkpoint["optimizer"])
+#         if scheduler:
+#             scheduler.load_state_dict(checkpoint["scheduler"])
+#         logger.info("Succeed to load weights from {}".format(last_checkpoint_path))
+#         best_checkpoint_path = get_best_model_path(cfg)
+#         checkpoint = torch.load(best_checkpoint_path, map_location=cfg.DEVICE)
+#         best_epoch = checkpoint["epoch"]
+#         best_score = checkpoint["val_score"] if "val_score" in checkpoint else None
+#         return epoch + 1, best_epoch, best_score
+#     except Exception:
+#         return 0, -1, None
+
+
+def load_train_checkpoint(
+    work_dir: str,
+    device: torch.device,
+    model: torch.nn.Module,
+    optimizer: Optional[torch.optim.Optimizer] = None,
+    scheduler: Optional[object] = None
+) -> Tuple:
+    """
+    Returns:
+        Tuple: [epoch, best_epoch, best_score]
+    """
 
     try:
-        last_checkpoint_path = get_last_model_path(cfg)
-        checkpoint = torch.load(last_checkpoint_path, map_location=cfg.DEVICE)
+        last_checkpoint_path = osp.join(work_dir, "last.pth")
+        checkpoint = torch.load(last_checkpoint_path, map_location=device)
         epoch = checkpoint["epoch"]
         model.load_state_dict(checkpoint["state_dict"], strict=True)
         if optimizer:
             optimizer.load_state_dict(checkpoint["optimizer"])
         if scheduler:
             scheduler.load_state_dict(checkpoint["scheduler"])
-        logger.info("Succeed to load weights from {}".format(last_checkpoint_path))
-        best_checkpoint_path = get_best_model_path(cfg)
-        checkpoint = torch.load(best_checkpoint_path, map_location=cfg.DEVICE)
+        logger.info("Succeed to load train info from {}".format(last_checkpoint_path))
+
+        best_checkpoint_path = osp.join(work_dir, "best.pth")
+        checkpoint = torch.load(best_checkpoint_path, map_location=device)
         best_epoch = checkpoint["epoch"]
         best_score = checkpoint["val_score"] if "val_score" in checkpoint else None
         return epoch + 1, best_epoch, best_score

@@ -1,49 +1,39 @@
+import os
 import sys
 import argparse
 import logging
+import hydra
+from omegaconf import DictConfig, OmegaConf
+from omegaconf.omegaconf import open_dict
 
 from retinal.config.registry import Registry
 from retinal.utils import mkdir, set_random_seed, setup_logging
-from retinal.engine import load_config, SegmentTrainer, DRTrainer
+from retinal.engine import DRTrainer
 
 logger = logging.getLogger(__name__)
 
-TRAINER_REGISTRY = Registry("trainer")
-TRAINER_REGISTRY.register("segment", SegmentTrainer)
-TRAINER_REGISTRY.register("dr", DRTrainer)
+TRAINERS = {
+    "dr": DRTrainer
+}
 
 
-def argument_parser() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Segmentation Pipeline')
-    parser.add_argument("task", type=str, default=None,
-                        choices=["segment", "dr"],
-                        help="The target task")
-    parser.add_argument("--config-file", default="", metavar="FILE",
-                        help="path to config file")
-    parser.add_argument("--opts", default=None, nargs=argparse.REMAINDER,
-                        help="Modify config options using command-line")
-
-    return parser
-
-
-def setup(args):
-    cfg = load_config(args)
-    mkdir(cfg.OUTPUT_DIR)
-    setup_logging(output_dir=cfg.OUTPUT_DIR)
-    set_random_seed(
-        seed=None if cfg.RNG_SEED < 0 else cfg.RNG_SEED,
-        deterministic=False if cfg.RNG_SEED < 0 else True
-    )
-    return cfg
-
-
-def main():
-    args = argument_parser().parse_args()
-    cfg = setup(args)
+@hydra.main(config_path="../configs", config_name="defaults")
+def main(cfg: DictConfig):
     logger.info("Launch command : ")
     logger.info(" ".join(sys.argv))
-    trainer = TRAINER_REGISTRY.get(args.task)(cfg)
-    trainer.train()
+    with open_dict(cfg):
+        cfg.work_dir = os.getcwd()
+    logger.info("\n" + OmegaConf.to_yaml(cfg))
+
+    set_random_seed(
+        cfg.seed if cfg.seed is not None else None,
+        deterministic=True if cfg.seed is not None else False
+    )
+
+    trainer = TRAINERS[cfg.task](cfg)
+    trainer.run()
+
+    logger.info("Job complete !\n")
 
 
 if __name__ == "__main__":

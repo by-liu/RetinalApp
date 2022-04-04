@@ -12,7 +12,7 @@ from .retinal_lesions import RetinalLesions
 from .fgadr_dataset import FGADRDataset
 from .cityscapes import CityscapesDataset
 from .image_folder import ImageFolder
-from .eyepacs_dataset import EyePacsDataset
+from .eyepacs import EyePacsDataset
 from .data_transform import build_image_transform
 
 logger = logging.getLogger(__name__)

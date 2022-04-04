@@ -1,0 +1,22 @@
+name: eyepacs
+
+data_root: /home/bliu/work/Code/RetinalApp/data/eyepacs
+batch_size: 16
+
+object:
+  train:
+    _target_: retinal.data.eyepacs.get_data_loader
+    data_root: ${data.data_root}
+    batch_size: ${data.batch_size}
+    split: train
+  val:
+    _target_: retinal.data.eyepacs.get_data_loader
+    data_root: ${data.data_root}
+    batch_size: ${data.batch_size}
+    split: val
+  test:
+    _target_: retinal.data.eyepacs.get_data_loader
+    data_root: ${data.data_root}
+    batch_size: ${data.batch_size}
+    split: test
+    

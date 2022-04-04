@@ -1,0 +1,11 @@
+name: convnext_base_384
+num_classes: 5
+pretrained: True
+drop_rate: 0.5
+
+object:
+  _target_: timm.create_model
+  model_name: convnext_base_384_in22ft1k
+  pretrained: ${model.pretrained}
+  num_classes: ${model.num_classes}
+  drop_rate: ${model.drop_rate}

@@ -1,4 +1,5 @@
 import numpy as np
+import wandb
 import logging
 from typing import List, Optional
 from terminaltables import AsciiTable
@@ -32,8 +33,8 @@ class MultiClassEvaluator(DatasetEvaluator):
         self.labels = None
 
     def main_metric(self):
-        # return "kappa"
-        return "macc"
+        return "kappa"
+        # return "macc"
 
     def num_samples(self):
         return (
@@ -70,7 +71,7 @@ class MultiClassEvaluator(DatasetEvaluator):
     def curr_score(self):
         return self.curr
 
-    def mean_score(self, print=True, all_metric=True):
+    def mean_score(self, print=False, all_metric=True):
         pred_labels = np.argmax(self.preds, axis=1)
         acc = (
             (pred_labels == self.labels).astype("int").sum() 
@@ -83,7 +84,7 @@ class MultiClassEvaluator(DatasetEvaluator):
                 confusion[i, i] / np.sum(confusion[i])
             )
         macc = np.array(class_acc).mean()
-        kappa = sklearn.metrics.cohen_kappa_score(self.labels, pred_labels)
+        kappa = sklearn.metrics.cohen_kappa_score(self.labels, pred_labels, weights="quadratic")
 
         metric = {"acc": acc, "macc": macc, "kappa": kappa}
 
@@ -108,6 +109,13 @@ class MultiClassEvaluator(DatasetEvaluator):
             return metric, table_data
         else:
             return metric[self.main_metric()], table_data
+
+    def wandb_score_table(self):
+        _, table_data = self.mean_score(print=False)
+        return wandb.Table(
+            columns=table_data[0],
+            data=table_data[1:]
+        )
 
 
 class MultilabelEvaluator(DatasetEvaluator):
