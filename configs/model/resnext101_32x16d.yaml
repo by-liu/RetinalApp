@@ -1,0 +1,11 @@
+name: resnext101_32x16d
+num_classes: 5
+pretrained: True
+drop_rate: 0.5
+
+object:
+  _target_: timm.create_model
+  model_name: ig_resnext101_32x16d
+  pretrained: ${model.pretrained}
+  num_classes: ${model.num_classes}
+  drop_rate: ${model.drop_rate}

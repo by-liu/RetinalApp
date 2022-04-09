@@ -37,12 +37,12 @@ class DRTrainer:
     def build_data_loader(self) -> None:
         self.train_loader = instantiate(self.cfg.data.object.train)
         self.val_loader = instantiate(self.cfg.data.object.val)
-        logger.info("Data pipeline initialized")
+        logger.info("Data pipeline initialized for train and val")
 
     def build_model(self) -> None:
         self.model = instantiate(self.cfg.model.object)
         self.model.to(self.device)
-        logger.info("Model initialized : {}".format(self.model))
+        logger.info("Model initialized : {}".format(self.cfg.model.name))
 
     def build_loss(self) -> None:
         self.loss_func = instantiate(self.cfg.loss.object)
@@ -285,7 +285,7 @@ class DRTrainer:
                 osp.join(self.work_dir, "{}-best.pth".format(wandb.run.name))
             )
             artifact = wandb.Artifact(
-                name="{}-{}".format(self.data.name, self.cfg.model.name),
+                name="{}-{}".format(self.cfg.data.name, self.cfg.model.name),
                 type="model",
             )
             artifact.add_file(osp.join(self.work_dir, "best.pth"))

@@ -98,6 +98,7 @@ def get_data_loader(
     batch_size: int = 8,
     split: str = "train",
     num_workers: int = 8,
+    return_id: bool = False,
 
 ):
     assert split in [
@@ -109,7 +110,7 @@ def get_data_loader(
         data_root=data_root,
         split=split,
         transformer=data_transformer,
-        return_id=(split == "test")
+        return_id=return_id,
     )
 
     data_loader = DataLoader(

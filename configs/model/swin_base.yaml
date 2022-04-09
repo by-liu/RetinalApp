@@ -1,0 +1,11 @@
+name: swin_base
+num_classes: 5
+pretrained: True
+drop_rate: 0.5
+
+object:
+  _target_: timm.create_model
+  model_name: swin_base_patch4_window12_384
+  pretrained: ${model.pretrained}
+  num_classes: ${model.num_classes}
+  drop_rate: ${model.drop_rate}
