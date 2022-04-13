@@ -59,6 +59,7 @@ class DRTrainer:
                 self.cfg.scheduler.object, self.optimizer,
                 steps_per_epoch=len(self.train_loader)
             )
+            logger.info("LR schedulear : {}".format(self.scheduler))
         else:
             self.scheduler = instantiate(
                 self.cfg.scheduler.object, self.optimizer
@@ -195,6 +196,9 @@ class DRTrainer:
             # logging
             if (i + 1) % self.cfg.log_period == 0:
                 self.log_iter_info(i, max_iter, epoch)
+            # iteration-level lr scheduler
+            if self.cfg.scheduler.name == "one_cycle":
+                self.scheduler.step()
             end = time.time()
         self.log_epoch_info(epoch)
 
@@ -225,9 +229,6 @@ class DRTrainer:
             # logging
             if (i + 1) % self.cfg.log_period == 0:
                 self.log_iter_info(i, max_iter, epoch, phase)
-            # iteration-level lr scheduler
-            if self.cfg.scheduler.name == "one_cycle":
-                self.scheduler.step()
             end = time.time()
         self.log_epoch_info(epoch, phase)
 

@@ -15,7 +15,7 @@ defaults:
 task: dr
 device: cuda:0
 seed: 1
-log_period: 50
+log_period: 100
 train:
   max_epoch: 100
   resume: False
