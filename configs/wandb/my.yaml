@@ -1,4 +1,4 @@
 enable: False
-project: retinal
+project: echo
 entity: newton
 tags: [train]
