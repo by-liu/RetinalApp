@@ -72,19 +72,19 @@ class MultiClassEvaluator(DatasetEvaluator):
         return self.curr
 
     def mean_score(self, print=False, all_metric=True):
-        pred_labels = np.argmax(self.preds, axis=1)
+        self.pred_labels = np.argmax(self.preds, axis=1)
         acc = (
-            (pred_labels == self.labels).astype("int").sum() 
+            (self.pred_labels == self.labels).astype("int").sum() 
             / self.labels.shape[0]
         )
-        confusion = sklearn.metrics.confusion_matrix(self.labels, pred_labels)
+        confusion = sklearn.metrics.confusion_matrix(self.labels, self.pred_labels)
         class_acc = []
         for i in range(self.num_classes):
             class_acc.append(
                 confusion[i, i] / np.sum(confusion[i])
             )
         macc = np.array(class_acc).mean()
-        kappa = sklearn.metrics.cohen_kappa_score(self.labels, pred_labels, weights="quadratic")
+        kappa = sklearn.metrics.cohen_kappa_score(self.labels, self.pred_labels, weights="quadratic")
 
         metric = {"acc": acc, "macc": macc, "kappa": kappa}
 

@@ -1,45 +1,31 @@
+import os
 import sys
-import argparse
 import logging
+import hydra
+from omegaconf import DictConfig, OmegaConf
+from omegaconf.omegaconf import open_dict
 
-from retinal.config.registry import Registry
-from retinal.utils import mkdir, setup_logging
-from retinal.engine import load_config, SegmentTester, DRTester
+from retinal.engine import DRTester
 
 logger = logging.getLogger(__name__)
 
-TESTER_REGISTRY = Registry("tester")
-TESTER_REGISTRY.register("segment", SegmentTester)
-TESTER_REGISTRY.register("dr", DRTester)
+TESTERS = {
+    "dr": DRTester,
+}
 
 
-def argument_parser() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description='Segmentation Pipeline')
-    parser.add_argument("task", type=str, default=None,
-                        choices=["segment", "dr"],
-                        help="The target task")
-    parser.add_argument("--config-file", default="", metavar="FILE",
-                        help="path to config file")
-    parser.add_argument("--opts", default=None, nargs=argparse.REMAINDER,
-                        help="Modify config options using command-line")
-
-    return parser
-
-
-def setup(args):
-    cfg = load_config(args)
-    mkdir(cfg.OUTPUT_DIR)
-    setup_logging(output_dir=cfg.OUTPUT_DIR)
-    return cfg
-
-
-def main():
-    args = argument_parser().parse_args()
-    cfg = setup(args)
+@hydra.main(config_path="../configs", config_name="defaults")
+def main(cfg: DictConfig):
     logger.info("Launch command : ")
     logger.info(" ".join(sys.argv))
-    tester = TESTER_REGISTRY.get(args.task)(cfg)
+    with open_dict(cfg):
+        cfg.work_dir = os.getcwd()
+    logger.info("\n" + OmegaConf.to_yaml(cfg))
+
+    tester = TESTERS[cfg.task](cfg)
     tester.test()
+
+    logger.info("Job complete !\n")
 
 
 if __name__ == "__main__":

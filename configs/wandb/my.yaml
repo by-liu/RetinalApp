@@ -1,4 +1,4 @@
 enable: False
 project: echo
 entity: newton
-tags: [train]
+tags: train

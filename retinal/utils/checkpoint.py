@@ -52,7 +52,7 @@ def save_train_checkpoint(
             )
 
 
-def load_checkpoint(model_path : str, model : torch.nn.Module, device) -> None:
+def load_checkpoint(model_path: str, model: torch.nn.Module, device) -> None:
     if not osp.exists(model_path):
         raise FileNotFoundError(
             "Model not found : {}".format(model_path)

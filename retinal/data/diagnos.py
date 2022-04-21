@@ -8,29 +8,27 @@ from albumentations.pytorch import ToTensorV2
 from typing import List, Optional, Callable, List, Any
 from torch.utils.data.dataset import Dataset
 
+from .eyepacs import data_transformation
 
-class EyePacsDataset(Dataset):
+
+class Diagnos(Dataset):
     def __init__(
         self,
         data_root: str,
-        split: str = "train",
+        split: str = "test",
         transformer: Optional[Callable] = None,
         return_id: bool = False,
     ):
-        assert split in {"train", "val", "trainval", "test"}
         self.data_root = data_root
         self.split = split
         self.transformer = transformer
         self.return_id = return_id
-
         self.num_classes = 5
-
-        self.img_dir = osp.join(self.data_root, "eyepacs_all_ims")
-
+        self.img_dir = osp.join(self.data_root, "Images")
         self.load_list()
 
     def load_list(self):
-        split_file = osp.join(self.data_root, "{}_eyepacs.csv".format(self.split))
+        split_file = osp.join(self.data_root, self.split + ".csv")
         self.img_names = []
         self.labels = []
         with open(split_file, "r") as f:
@@ -66,81 +64,41 @@ class EyePacsDataset(Dataset):
 
     def __repr__(self) -> str:
         return (
-            "EyePacs(data_root={}, split={})\tSamples : {}".format(
+            "Diagnos(data_root={}, split={})\tSamples : {}".format(
                 self.data_root, self.split, self.__len__()
             )
         )
 
 
-def data_transformation(is_train: bool = True):
-    if is_train:
-        transformer = A.Compose([
-            A.Resize(width=512, height=512),
-            A.ColorJitter(
-                brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2, p=0.5
-            ),
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.5),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-    else:
-        transformer = A.Compose([
-            A.Resize(height=512, width=512),
-            A.Normalize(),
-            ToTensorV2()
-        ])
-    return transformer
-
-
 def get_data_loader(
     data_root: str,
     batch_size: int = 8,
-    split: str = "train",
+    split: str = "test",
     num_workers: int = 8,
     return_id: bool = False,
+
 ):
     assert split in [
-        "train", "val", "test",
-    ], "Split '{}' not supported".format(split)
-
-    data_transformer = data_transformation(is_train=(split == "train"))
-    dataset = EyePacsDataset(
-        data_root=data_root,
-        split=split,
-        transformer=data_transformer,
-        return_id=return_id,
-    )
-
-    data_loader = DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
-        shuffle=(split == "train")
-    )
-
-    return data_loader
-
-
-def get_dataset(
-    data_root: str,
-    split: str = "train",
-    return_id: bool = False,
-):
-    assert split in [
-        "train", "val", "test",
+        "test",
     ], "Split '{}' not supported".format(split)
 
     transformer = A.Compose([
         A.Normalize(),
         # ToTensorV2()
     ])
-    dataset = EyePacsDataset(
+    dataset = Diagnos(
         data_root=data_root,
         split=split,
         transformer=transformer,
         return_id=return_id,
     )
+
+    # data_loader = DataLoader(
+    #     dataset=dataset,
+    #     batch_size=batch_size,
+    #     num_workers=num_workers,
+    #     pin_memory=torch.cuda.is_available(),
+    #     shuffle=(split == "train")
+    # )
 
     return dataset

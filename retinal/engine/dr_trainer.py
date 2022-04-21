@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class DRTrainer:
-    def __init__(self, cfg: CN):
+    def __init__(self, cfg: DictConfig) -> None:
         self.cfg = cfg
         self.work_dir = self.cfg.work_dir
         self.device = torch.device(self.cfg.device)
@@ -93,7 +93,7 @@ class DRTrainer:
                 project=self.cfg.wandb.project,
                 entity=self.cfg.wandb.entity,
                 config=OmegaConf.to_container(self.cfg, resolve=True),
-                tags=self.cfg.wandb.tags,
+                tags=self.cfg.wandb.tags.split(","),
             )
             wandb.run.name = "{}-{}-{}".format(
                 wandb.run.id, self.cfg.model.name, self.cfg.loss.name

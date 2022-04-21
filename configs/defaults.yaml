@@ -21,11 +21,14 @@ train:
   resume: False
   keep_checkpoint_num: 1
   keep_checkpoint_interval: 0
-  mixup:
-    enable: False
-    alpha: 0.4
 test:
   checkpoint: ""
   save_prediction: False
+  augment:
+    method: resize
+    resize_small_size: 576
+    crop_size: [512, 512]
+    flip: False
+    fuse: tsharpen
 wandb:
-  enable: True
+  enable: False

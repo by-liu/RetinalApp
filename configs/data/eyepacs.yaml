@@ -19,4 +19,8 @@ object:
     data_root: ${data.data_root}
     batch_size: ${data.batch_size}
     split: test
+  test_ta:
+    _target_: retinal.data.eyepacs.get_dataset
+    data_root: ${data.data_root}
+    split: test
     
