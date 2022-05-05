@@ -3,10 +3,55 @@ import numpy as np
 from omegaconf.dictconfig import DictConfig
 import torch
 import cv2
-from albumentations.augmentations.geometric.functional import smallest_max_size, resize
+from albumentations.augmentations.geometric.functional import smallest_max_size, resize, longest_max_size
 from albumentations.augmentations.crops.functional import crop, center_crop
-from albumentations.augmentations.functional import hflip
+from albumentations.augmentations.functional import hflip, pad
 from typing import List, Union
+
+
+def get_bbox(img, thres=1200, dilated=10):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    height, width = img.shape[0], img.shape[1]
+    x_min = 0
+    for i in range(width // 3):
+        if img[:, i].sum() > thres:
+            x_min = i
+            break
+    x_min = max(0, x_min - dilated)
+
+    x_max = width - 1
+    for i in range(width - 1, width * 2 // 3, -1):
+        if img[:, i].sum() > thres:
+            x_max = i
+            break
+    x_max = min(width - 1, x_max + dilated)
+
+    y_min = 0
+    for i in range(height // 3):
+        if img[i, :].sum() > thres:
+            y_min = i
+            break
+    y_min = max(0, y_min - dilated)
+
+    y_max = height - 1
+    for i in range(height - 1, height * 2 // 3, -1):
+        if img[i, :].sum() > thres:
+            y_max = i
+            break
+    y_max = min(height - 1, y_max + dilated)
+
+    return (x_min, x_max, y_min, y_max)
+
+
+def preprocess(img, dsize=896, thres=1200, dilated=10):
+    # resize_img = longest_max_size(img, dsize + 128, interpolation=cv2.INTER_LINEAR)
+    resize_img = smallest_max_size(img, dsize, interpolation=cv2.INTER_LINEAR)
+    bbox = get_bbox(resize_img, thres, dilated)
+    crop_img = resize_img[bbox[2]:bbox[3], bbox[0]:bbox[1], :]
+    # crop_img = longest_max_size(crop_img, max_size=dsize, interpolation=cv2.INTER_LINEAR)
+    # pad_img = pad(crop_img, 896, 896, border_mode=cv2.BORDER_CONSTANT, value=0)
+
+    return crop_img
 
 
 def fivecrop(

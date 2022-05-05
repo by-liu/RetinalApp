@@ -9,7 +9,7 @@ import os
 import os.path as osp
 import logging
 import cv2
-from PIL import Image
+import albumentations as A
 from torch.utils.data.dataset import Dataset
 from typing import Optional, Tuple, Callable, Any
 
@@ -28,12 +28,12 @@ class ImageFolder(Dataset):
         data_root: str,
         exts: Tuple[str] = ("jpg", "jpeg", "png"),
         return_id: bool = True,
-        transforms: Optional[Callable] = None,
+        transformer: Optional[Callable] = None,
     ) -> None:
         self.data_root = data_root
         self.exts = exts
         self.return_id = return_id
-        self.transforms = transforms
+        self.transformer = transformer
         # get all the test samples
         self.samples = self.get_images_files()
 
@@ -48,13 +48,31 @@ class ImageFolder(Dataset):
         img = cv2.imread(img_file)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        if self.transforms is not None:
-            img = self.transforms(Image.fromarray(img))
+        if self.transformer is not None:
+            result = self.transformer(image=img)
+            img = result["image"]
 
         if self.return_id:
-            return img, sample_name
+            return img, 0, sample_name
         else:
-            return img
+            return img, 0
 
     def __len__(self) -> int:
         return len(self.samples)
+
+
+def get_dataset(
+    data_root: str,
+    return_id: bool = True,
+
+):
+    transformer = A.Compose([
+        A.Normalize(),
+    ])
+    dataset = ImageFolder(
+        data_root=data_root,
+        transformer=transformer,
+        return_id=return_id,
+    )
+
+    return dataset

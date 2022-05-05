@@ -1,6 +1,6 @@
 name: resnext101_32x16d
 num_classes: 5
-pretrained: True
+pretrained: False
 drop_rate: 0.5
 
 object:

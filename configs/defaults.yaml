@@ -25,10 +25,10 @@ test:
   checkpoint: ""
   save_prediction: False
   augment:
-    method: resize
+    method: resize_and_centercrop
     resize_small_size: 576
     crop_size: [512, 512]
-    flip: False
+    flip: True
     fuse: tsharpen
 wandb:
   enable: False

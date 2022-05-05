@@ -63,21 +63,24 @@ class DRTester:
         load_checkpoint(self.checkpoint_path, self.model, self.device)
 
     def build_meter(self):
-        self.num_classes = self.test_loader.num_classes
-        self.evaluator = MultiClassEvaluator(
-            num_classes=self.num_classes
-        )
+        if self.cfg.data.name != "folder":
+            self.num_classes = self.test_loader.num_classes
+            self.evaluator = MultiClassEvaluator(
+                num_classes=self.num_classes
+            )
         self.batch_time_meter = AverageMeter()
         logger.info("Meters initialized")
 
     def reset_meter(self):
-        self.evaluator.reset()
+        if self.cfg.data.name != "folder":
+            self.evaluator.reset()
         self.batch_time_meter.reset()
 
     def log_iter_info(self, iter, max_iter):
         log_dict = {}
         log_dict["batch_time"] = self.batch_time_meter.val
-        log_dict.update(self.evaluator.curr_score())
+        if self.cfg.data.name != "folder":
+            log_dict.update(self.evaluator.curr_score())
         logger.info(
             "Test iter[{}/{}]\t{}".format(
                 iter + 1, max_iter, json.dumps(round_dict(log_dict))
@@ -86,13 +89,14 @@ class DRTester:
 
     def log_epoch_info(self):
         log_dict = {}
-        log_dict["samples"] = self.evaluator.num_samples()
-        metric, table_data = self.evaluator.mean_score(print=False)
-        log_dict.update(metric)
+        if self.cfg.data.name != "folder":
+            log_dict["samples"] = self.evaluator.num_samples()
+            metric, table_data = self.evaluator.mean_score(print=False)
+            log_dict.update(metric)
+            logger.info("\n" + AsciiTable(table_data).table)
         logger.info("Test Epoch\t{}".format(
             json.dumps(round_dict(log_dict))
         ))
-        logger.info("\n" + AsciiTable(table_data).table)
         if self.cfg.wandb.enable:
             wandb_log_dict = dict(
                 ("Test/{}".format(key), value) for (key, value) in log_dict.items()
@@ -115,9 +119,15 @@ class DRTester:
         max_iter = len(self.test_loader)
         end = time.time()
 
+        if self.cfg.test.save_prediction:
+            fsave = open(osp.join(self.work_dir, "predicts.csv"), "w")
+
         for i, samples in enumerate(self.test_loader):
+            # import ipdb; ipdb.set_trace()
+            # img = ta.preprocess(samples[0])
+            img = samples[0]
             inputs = ta.augment(
-                samples[0],
+                img,
                 self.cfg.test.augment
             )
             if isinstance(inputs, list):
@@ -129,14 +139,24 @@ class DRTester:
                 inputs = torch.from_numpy(inputs).to(self.device)
                 outputs = self.model(inputs)
             label = samples[1]
-            
+
             predicts = F.softmax(outputs, dim=1)
             predicts = ta.fuse_predicts(predicts, reduce=self.cfg.test.augment.fuse)
+            pred_label = torch.argmax(predicts)
 
-            self.evaluator.update(
-                np.expand_dims(predicts.detach().cpu().numpy(), axis=0),
-                np.expand_dims(label, axis=0),
-            )
+            if self.cfg.data.name != "folder":
+                self.evaluator.update(
+                    np.expand_dims(predicts.detach().cpu().numpy(), axis=0),
+                    np.expand_dims(label, axis=0),
+                )
+
+            if self.cfg.test.save_prediction:
+                fsave.write("{},{},{:.5f}\n".format(
+                    osp.splitext(samples[2])[0],
+                    pred_label,
+                    predicts.max()
+                ))
+
             # measure elapsed time
             self.batch_time_meter.update(time.time() - end)
             # logging
@@ -144,3 +164,6 @@ class DRTester:
                 self.log_iter_info(i, max_iter)
             end = time.time()
         self.log_epoch_info()
+
+        if self.cfg.test.save_prediction:
+            fsave.close()

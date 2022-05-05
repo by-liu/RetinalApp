@@ -1,0 +1,10 @@
+name: folder 
+
+data_root: /home/bliu/work/Data/diagnos_dr/Images
+return_id: True
+
+object:
+  test_ta:
+    _target_: retinal.data.image_folder.get_dataset
+    data_root: ${data.data_root}
+    return_id: ${data.return_id}

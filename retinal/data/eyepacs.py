@@ -134,7 +134,6 @@ def get_dataset(
 
     transformer = A.Compose([
         A.Normalize(),
-        # ToTensorV2()
     ])
     dataset = EyePacsDataset(
         data_root=data_root,

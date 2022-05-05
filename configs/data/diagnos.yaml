@@ -4,8 +4,7 @@ data_root: /home/bliu/work/Data/diagnos_dr
 batch_size: 16
 
 object:
-  test:
-    _target_: retinal.data.diagnos.get_data_loader
+  test_ta:
+    _target_: retinal.data.diagnos.get_dataset
     data_root: ${data.data_root}
-    batch_size: ${data.batch_size}
     split: test 

@@ -70,11 +70,9 @@ class Diagnos(Dataset):
         )
 
 
-def get_data_loader(
+def get_dataset(
     data_root: str,
-    batch_size: int = 8,
     split: str = "test",
-    num_workers: int = 8,
     return_id: bool = False,
 
 ):
@@ -84,7 +82,6 @@ def get_data_loader(
 
     transformer = A.Compose([
         A.Normalize(),
-        # ToTensorV2()
     ])
     dataset = Diagnos(
         data_root=data_root,
@@ -92,13 +89,5 @@ def get_data_loader(
         transformer=transformer,
         return_id=return_id,
     )
-
-    # data_loader = DataLoader(
-    #     dataset=dataset,
-    #     batch_size=batch_size,
-    #     num_workers=num_workers,
-    #     pin_memory=torch.cuda.is_available(),
-    #     shuffle=(split == "train")
-    # )
 
     return dataset
