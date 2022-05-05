@@ -11,7 +11,6 @@ async-generator==1.10
 attrs==20.3.0
 backcall==0.2.0
 base58==2.1.0
-batchgenerators==0.21
 beautifulsoup4==4.10.0
 behave==1.2.6
 black==21.4b2

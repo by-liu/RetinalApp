@@ -164,6 +164,5 @@ class DRTester:
                 self.log_iter_info(i, max_iter)
             end = time.time()
         self.log_epoch_info()
-
         if self.cfg.test.save_prediction:
             fsave.close()

@@ -23,7 +23,7 @@ train:
   keep_checkpoint_interval: 0
 test:
   checkpoint: ""
-  save_prediction: False
+  save_prediction: True
   augment:
     method: resize_and_centercrop
     resize_small_size: 576
