@@ -151,10 +151,11 @@ class DRTester:
                 )
 
             if self.cfg.test.save_prediction:
-                fsave.write("{},{},{:.5f}\n".format(
+                fsave.write("{},{},{:.5f},{:.5f},{:.5f},{:.5f},{:.5f},{:.5f}\n".format(
                     osp.splitext(samples[2])[0],
                     pred_label,
-                    predicts.max()
+                    predicts.max(),
+                    predicts[0], predicts[1], predicts[2], predicts[3], predicts[4], 
                 ))
 
             # measure elapsed time
