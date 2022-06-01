@@ -2,7 +2,6 @@ import os
 import os.path as osp
 import logging
 import torch
-from yacs.config import CfgNode as CN
 from typing import Optional, Tuple
 
 from .file_io import mkdir, load_list
@@ -66,55 +65,6 @@ def load_checkpoint(model_path: str, model: torch.nn.Module, device) -> None:
         logger.warn("Missing keys : {}".format(missing_keys))
     if unexpected_keys:
         logger.warn("Unexpected keys : {}".format(unexpected_keys))
-
-
-def get_best_model_path(cfg : CN) -> str:
-    """get the path of the best model"""
-    # best_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "best_checkpoint")
-    # if not osp.exists(best_checkpoint_path):
-    #     raise FileNotFoundError(
-    #         "File not found : {}".format(best_checkpoint_path)
-    #     )
-    # model_name = load_list(best_checkpoint_path)[0]
-
-    return osp.join(cfg.OUTPUT_DIR, "model", "best.pth")
-
-
-def get_last_model_path(cfg : CN) -> str:
-    """get the path of the best model"""
-    # last_checkpoint_path = osp.join(cfg.OUTPUT_DIR, "model", "last_checkpoint")
-    # if not osp.exists(last_checkpoint_path):
-    #     raise FileNotFoundError(
-    #         "File not found : {}".format(last_checkpoint_path)
-    #     )
-    # model_name = load_list(last_checkpoint_path)[0]
-
-    return osp.join(cfg.OUTPUT_DIR, "model", "last.pth")
-
-
-# def load_train_checkpoint(cfg: CN, model: torch.nn.Module,
-#                           optimizer: torch.optim.Optimizer = None,
-#                           scheduler: torch.optim.lr_scheduler = None) -> Tuple:
-#     if not cfg.TRAIN.AUTO_RESUME:
-#         return 0, -1, None
-
-#     try:
-#         last_checkpoint_path = get_last_model_path(cfg)
-#         checkpoint = torch.load(last_checkpoint_path, map_location=cfg.DEVICE)
-#         epoch = checkpoint["epoch"]
-#         model.load_state_dict(checkpoint["state_dict"], strict=True)
-#         if optimizer:
-#             optimizer.load_state_dict(checkpoint["optimizer"])
-#         if scheduler:
-#             scheduler.load_state_dict(checkpoint["scheduler"])
-#         logger.info("Succeed to load weights from {}".format(last_checkpoint_path))
-#         best_checkpoint_path = get_best_model_path(cfg)
-#         checkpoint = torch.load(best_checkpoint_path, map_location=cfg.DEVICE)
-#         best_epoch = checkpoint["epoch"]
-#         best_score = checkpoint["val_score"] if "val_score" in checkpoint else None
-#         return epoch + 1, best_epoch, best_score
-#     except Exception:
-#         return 0, -1, None
 
 
 def load_train_checkpoint(

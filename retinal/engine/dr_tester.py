@@ -6,7 +6,6 @@ import time
 import json
 import logging
 import torch
-from yacs.config import CfgNode as CN
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import instantiate
 import torch.nn.functional as F
@@ -14,11 +13,9 @@ from terminaltables.ascii_table import AsciiTable
 import wandb
 
 import retinal.data.test_augment as ta
-from retinal.config import convert_cfg_to_dict
 from retinal.modeling import CompoundLoss
-from retinal.solver import get_lr
 from retinal.evaluation import MultiClassEvaluator, AverageMeter, LossMeter
-from retinal.utils import round_dict
+from retinal.utils import round_dict, get_lr
 from retinal.utils.checkpoint import load_checkpoint
 
 logger = logging.getLogger(__name__)

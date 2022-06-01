@@ -6,7 +6,6 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from omegaconf.omegaconf import open_dict
 
-from retinal.config.registry import Registry
 from retinal.utils import mkdir, set_random_seed, setup_logging
 from retinal.engine import DRTrainer
 

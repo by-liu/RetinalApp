@@ -1,6 +1,6 @@
 name: eyepacs
 
-data_root: /home/bliu/work/Code/RetinalApp/data/eyepacs
+data_root: /export/livia/home/vision/lbingyuan/work/Data/eyepacs
 batch_size: 16
 
 object:
