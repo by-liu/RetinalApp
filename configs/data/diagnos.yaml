@@ -1,10 +1,18 @@
 name: diagnos
 
 data_root: /home/bliu/work/Data/diagnos_dr
-batch_size: 16
+batch_size: 8
+val_split: test
+test_split: test
 
 object:
+  val:
+    _target_: retinal.data.diagnos.get_data_loader
+    data_root: ${data.data_root}
+    split: ${data.val_split}
+    batch_size: ${data.batch_size}
+
   test_ta:
     _target_: retinal.data.diagnos.get_dataset
     data_root: ${data.data_root}
-    split: test 
+    split: ${data.test_split}

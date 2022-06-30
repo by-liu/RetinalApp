@@ -70,6 +70,44 @@ class Diagnos(Dataset):
         )
 
 
+def get_data_loader(
+    data_root: str,
+    batch_size: int = 8,
+    split: str = "train",
+    num_workers: int = 8,
+    return_id: bool = False,
+):
+    """get data loader for diagnos data"""
+    assert split in [
+        "train", "val", "trainval", "test", "test-val", "test-test"
+    ], "Split '{}' not supported".format(split)
+
+    data_transformer = A.Compose([
+        # A.SmallestMaxSize(max_size=576, interpolation=cv2.INTER_CUBIC),
+        A.Resize(height=512, width=512),
+        # A.CenterCrop(height=512, width=512),
+        A.Normalize(),
+        ToTensorV2()
+    ])
+
+    dataset = Diagnos(
+        data_root=data_root,
+        split=split,
+        transformer=data_transformer,
+        return_id=return_id
+    )
+
+    data_loader = DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+        shuffle=True,
+    )
+
+    return data_loader
+
+
 def get_dataset(
     data_root: str,
     split: str = "test",
@@ -77,7 +115,7 @@ def get_dataset(
 
 ):
     assert split in [
-        "test",
+        "test", "test-val", "test-test"
     ], "Split '{}' not supported".format(split)
 
     transformer = A.Compose([

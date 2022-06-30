@@ -126,7 +126,7 @@ def resize_and_centercrop(
     crop_size: List[int] = [224, 224],
     flip: bool = True
 ) -> np.ndarray:
-    resized_image = smallest_max_size(image, max_size=resize_max_size, interpolation=cv2.INTER_LINEAR)
+    resized_image = smallest_max_size(image, max_size=resize_max_size, interpolation=cv2.INTER_CUBIC)
     height, width = resized_image.shape[0], resized_image.shape[1]
     crop_height, crop_width = crop_size
     assert (

@@ -5,12 +5,13 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from omegaconf.omegaconf import open_dict
 
-from retinal.engine import DRTester
+from retinal.engine import DRTester, DRTent
 
 logger = logging.getLogger(__name__)
 
 TESTERS = {
     "dr": DRTester,
+    "dr_tent": DRTent,
 }
 
 

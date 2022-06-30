@@ -109,7 +109,7 @@ class DRTester:
             wandb.log(wandb_log_dict)
 
     @torch.no_grad()
-    def test(self):
+    def test_epoch(self):
         self.reset_meter()
         self.model.eval()
 
@@ -164,3 +164,6 @@ class DRTester:
         self.log_epoch_info()
         if self.cfg.test.save_prediction:
             fsave.close()
+
+    def test(self):
+        self.test_epoch()
