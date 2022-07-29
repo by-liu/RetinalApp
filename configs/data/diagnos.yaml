@@ -1,6 +1,6 @@
 name: diagnos
 
-data_root: /home/bliu/work/Data/diagnos_dr
+data_root: /home/bliu/work/Data/diagnos_dr_v2
 batch_size: 8
 val_split: test
 test_split: test
