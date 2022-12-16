@@ -51,6 +51,7 @@ kappa score (the most widely used (papers and competitions) metric for imbalance
 | TENT + TTDA | **0.6446** |
 
 accuracy of each class (correct_prediction / sample_number_per_class)
+
 auc of each class (covert to binary result for each class)
 
 | method    |  acc_0 |  auc_0 |  acc_1 |  auc_1 |  acc_2 |  auc_2 |  acc_3 |  auc_3 |
