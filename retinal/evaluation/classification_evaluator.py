@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 from terminaltables import AsciiTable
 import sklearn.metrics
-from sklearn.metrics import precision_score
+from sklearn.metrics import precision_score, roc_auc_score
 
 from retinal.evaluation.evaluator import DatasetEvaluator
 
@@ -79,20 +79,27 @@ class MultiClassEvaluator(DatasetEvaluator):
         )
         confusion = sklearn.metrics.confusion_matrix(self.labels, self.pred_labels)
         class_acc = []
+        class_auc = []
         for i in range(self.num_classes):
             class_acc.append(
                 confusion[i, i] / np.sum(confusion[i])
             )
+            y_true = (self.labels == i).astype("int")
+            y_score = self.preds[:, i]
+            class_auc.append(
+                roc_auc_score(y_true, y_score) if np.sum(y_true) > 0 else 0.0
+            )
+        
         macc = np.array(class_acc).mean()
         kappa = sklearn.metrics.cohen_kappa_score(self.labels, self.pred_labels, weights="quadratic")
 
         metric = {"acc": acc, "macc": macc, "kappa": kappa}
 
-        columns = ["id", "Class", "acc"]
+        columns = ["id", "Class", "acc", "auc"]
         table_data = [columns]
         for i in range(self.num_classes):
             table_data.append(
-                [i, self.classes[i], "{:.4f}".format(class_acc[i])]
+                [i, self.classes[i], f"{class_acc[i]:.4f}", f"{class_auc[i]:.4f}"]
             )
         table_data.append(
             [None, "macc", "{:.4f}".format(macc)]

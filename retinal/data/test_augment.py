@@ -246,13 +246,19 @@ def augment(input: np.ndarray, aug_cfg: DictConfig):
             crop_size=aug_cfg.crop_size,
             flip=aug_cfg.flip
         )
-    elif aug_cfg.method == "resize":
+    elif aug_cfg.method == "resize": 
+    # target size for model : 512 x 512
+    # original size : 512 x 800 ratio : width/height = 1.5625
+    # outpu size of the func: 512 x 512
         return resize_and_flip(
             input,
             dst_size=aug_cfg.crop_size,
             flip=aug_cfg.flip
         )
     elif aug_cfg.method == "resize_smallest":
+    # target size for model : 512 x any / any x 512
+    # original size : 512 x 800 ratio : width/height = 1.5625
+    # output size is : 512 x 800 (keep ratio of the image)
         return resize_smallest_and_flip(
             input,
             dist_size=aug_cfg.resize_small_size,

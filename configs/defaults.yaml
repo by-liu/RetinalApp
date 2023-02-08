@@ -23,12 +23,12 @@ train:
   keep_checkpoint_interval: 0
 test:
   checkpoint: ""
-  save_prediction: True
+  save_prediction: False
   augment:
-    method: resize_and_centercrop
+    method: resize
     resize_small_size: 576
     crop_size: [512, 512]
-    flip: True
+    flip: False
     fuse: tsharpen
 wandb:
   enable: False

@@ -122,16 +122,17 @@ class DRTester:
         for i, samples in enumerate(self.test_loader):
             # import ipdb; ipdb.set_trace()
             # img = ta.preprocess(samples[0])
-            img = samples[0]
+            # image from a folder
+            img = samples[0]  # 3 x 512 x 512 # numpy ? 
             inputs = ta.augment(
                 img,
                 self.cfg.test.augment
-            )
+            )   # [3 x 512 x512, 3 x512x 512, ...] 4 augmented images
             if isinstance(inputs, list):
                 outputs = [
                     self.model(torch.from_numpy(x).to(self.device)) for x in inputs
-                ]
-                outputs = torch.cat(outputs, dim=0)
+                ] # [6 x 1, 6x1, ....]
+                outputs = torch.cat(outputs, dim=0)  # 6 x 4 
             else:
                 inputs = torch.from_numpy(inputs).to(self.device)
                 outputs = self.model(inputs)

@@ -3,10 +3,12 @@ import time
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import instantiate
 import torch.nn.functional as F
+import os.path as osp
 
 from retinal.evaluation import MultiClassEvaluator, AverageMeter, LossMeter
 import retinal.modeling.tent as tent
 from .dr_tester import DRTester
+from ..utils.checkpoint import save_checkpoint
 
 
 logger = logging.getLogger(__name__)
@@ -68,5 +70,10 @@ class DRTent(DRTester):
             logger.info(" Start tent epoch {}".format(epoch + 1))
             logger.info("=" * 20)
             self.tent_epoch()
+        save_checkpoint(
+            self.model,
+            self.work_dir,
+            f"tent-{osp.split(self.cfg.test.checkpoint)[1]}"
+        )
 
         self.test_epoch()

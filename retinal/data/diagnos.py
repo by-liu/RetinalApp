@@ -78,9 +78,9 @@ def get_data_loader(
     return_id: bool = False,
 ):
     """get data loader for diagnos data"""
-    assert split in [
-        "train", "val", "trainval", "test", "test-val", "test-test"
-    ], "Split '{}' not supported".format(split)
+    # assert split in [
+    #     "train", "val", "trainval", "test", "test-val", "test-test"
+    # ], "Split '{}' not supported".format(split)
 
     data_transformer = A.Compose([
         # A.SmallestMaxSize(max_size=576, interpolation=cv2.INTER_CUBIC),
@@ -114,9 +114,9 @@ def get_dataset(
     return_id: bool = False,
 
 ):
-    assert split in [
-        "test", "test-val", "test-test"
-    ], "Split '{}' not supported".format(split)
+    # assert split in [
+    #     "test", "test-val", "test-test"
+    # ], "Split '{}' not supported".format(split)
 
     transformer = A.Compose([
         A.Normalize(),
