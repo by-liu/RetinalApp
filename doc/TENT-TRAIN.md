@@ -56,7 +56,8 @@ python tools/test_net.py \
     test.checkpoint=/home/bliu/work/Code/RetinalApp/trained/3k3ud6f6-resnext101_32x16d-ce-best.pth 
 ```
 
-The arguments related to the `paths` and `split` should be changed according to your environment.
+The arguments related to the `paths` and `splits` should be changed according to your environment.
+Note, here the `data.val_split` is the set to performing TENT and `data.test_split` is the set for testing after TENT.
 The parameters of `lr`, `max_epoch` and `batch_size` could be tuned for optmizing the final performance.
 
 After the job is done, the new checkpoint (a file named as tent-***.pth) could be found under a generated directory under the directory of `outputs`, like:
