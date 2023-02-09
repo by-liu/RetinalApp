@@ -72,5 +72,5 @@ The resuling directory would be a little different for each run, as the name of 
 
 ## Testing
 
-The above training set already performed testing, but without test-time data augmentation (TTDA).
+The above run already performed testing, but without test-time data augmentation (TTDA).
 If you want to test with TTDA, please refer to https://github.com/by-liu/ttda
